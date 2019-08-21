@@ -48,6 +48,14 @@ public class YggAddress {
         }
     }
 
+    public byte[] getAddressBytes() {
+        return addressBytes;
+    }
+
+    public InetAddress getInetAddress() {
+        return address;
+    }
+
     public static byte[] getPrefix() {
         return new byte[]{0x02};
     }
