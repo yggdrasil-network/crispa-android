@@ -1,9 +1,8 @@
 package io.github.chronosx88.yggdrasil.address;
 
+import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class YggAddress {
     private static final short IPV6_ADDRESS_LENGTH = 16; // represents an IPv6 address in the yggdrasil address range.
@@ -14,7 +13,7 @@ public class YggAddress {
 
     public YggAddress(NodeID nodeID) {
         addressBytes = new byte[IPV6_ADDRESS_LENGTH];
-        List<Byte> temp = new ArrayList<>();
+        ByteArrayOutputStream temp = new ByteArrayOutputStream();
         boolean done = false;
         byte ones = 0;
         byte bits = 0;
@@ -33,14 +32,14 @@ public class YggAddress {
             nBits++;
             if(nBits == 8) {
                 nBits = 0;
-                temp.add(bits);
+                temp.write(bits);
             }
         }
 
         byte[] prefix = getPrefix();
         System.arraycopy(prefix, 0, addressBytes, 0, prefix.length);
         addressBytes[prefix.length] = ones;
-        System.arraycopy(temp.toArray(new Byte[0]), 0, addressBytes, prefix.length+1, temp.size());
+        System.arraycopy(temp.toByteArray(), 0, addressBytes, prefix.length+1, addressBytes.length-(prefix.length+1));
         try {
             address = InetAddress.getByAddress(addressBytes);
         } catch (UnknownHostException e) {
