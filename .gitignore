@@ -11,3 +11,5 @@
 /build
 /captures
 .externalNativeBuild
+/yggdrasil/yggdrasil.aar
+/yggdrasil/yggdrasil-sources.jar
