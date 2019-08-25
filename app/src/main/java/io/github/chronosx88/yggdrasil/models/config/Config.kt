@@ -16,7 +16,7 @@ data class Config (
 	@SerializedName("linkLocalTCPPort") val linkLocalTCPPort : Int,
 	@SerializedName("ifName") val ifName : String,
 	@SerializedName("ifTAPMode") val ifTAPMode : Boolean,
-	@SerializedName("ifMTU") val ifMTU : Int,
+	@SerializedName("ifMTU") val ifMTU : Long,
 	@SerializedName("sessionFirewall") val sessionFirewall : SessionFirewall,
 	@SerializedName("tunnelRouting") val tunnelRouting : TunnelRouting,
 	@SerializedName("switchOptions") val switchOptions : SwitchOptions,

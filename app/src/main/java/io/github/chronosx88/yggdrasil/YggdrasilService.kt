@@ -16,13 +16,13 @@ class YggdrasilService : Service() {
     }
 
     private fun installBinary() {
-        val type = CPU_ABI.let {
+        val type = "yggdrasil-$YGGDRASIL_VERSION-linux-${CPU_ABI.let {
             when{
                 it.contains("v8") -> "arm64"
-                //it.contains("v7") -> "armhf"
+                it.contains("v7") -> "armhf"
                 else -> throw Exception("Unsupported ABI")
             }
-        }
+        }}"
 
         yggBin.apply {
             delete()
@@ -39,7 +39,7 @@ class YggdrasilService : Service() {
         }
 
         yggBin.setExecutable(true)
-        execYgg("-genconf > yggdrasil.conf").waitFor() // Generate config
+        generateYggConfig()
         Log.i(LOG_TAG, "# Binary installed successfully")
     }
 
