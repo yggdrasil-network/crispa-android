@@ -2,8 +2,6 @@ package io.github.chronosx88.yggdrasil
 
 import android.app.Service
 import android.content.Intent
-import android.os.Build.CPU_ABI
-import android.util.Log
 import kotlin.system.exitProcess
 
 class YggdrasilService : Service() {
@@ -15,38 +13,10 @@ class YggdrasilService : Service() {
         var daemon: Process? = null
     }
 
-    private fun installBinary() {
-        val type = "yggdrasil-$YGGDRASIL_VERSION-linux-${CPU_ABI.let {
-            when{
-                it.contains("v8") -> "arm64"
-                it.contains("v7") -> "armhf"
-                else -> throw Exception("Unsupported ABI")
-            }
-        }}"
-
-        yggBin.apply {
-            delete()
-            createNewFile()
-        }
-
-        val input = assets.open(type)
-        val output = yggBin.outputStream()
-
-        try {
-            input.copyTo(output)
-        } finally {
-            input.close(); output.close()
-        }
-
-        yggBin.setExecutable(true)
-        generateYggConfig()
-        Log.i(LOG_TAG, "# Binary installed successfully")
-    }
-
     private fun start() {
-        execYgg("-useconffile yggdrasil.conf").apply {
-            daemon = this
-        }
+        val process = execYgg("-useconffile ${filesDir.absolutePath}/yggdrasil.conf")
+        process.waitFor()
+        daemon = process
     }
 
     private fun stop() {
@@ -65,5 +35,10 @@ class YggdrasilService : Service() {
             "exit" -> exitProcess(0)
         }
         return START_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stop()
     }
 }

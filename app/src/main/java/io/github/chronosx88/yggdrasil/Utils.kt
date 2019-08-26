@@ -2,6 +2,7 @@ package io.github.chronosx88.yggdrasil
 
 import android.content.Context
 import android.os.Build.CPU_ABI
+import android.util.Log
 import com.google.gson.Gson
 import config.NodeConfig
 import io.github.chronosx88.yggdrasil.models.config.Config
@@ -37,7 +38,12 @@ fun Context.getYggConfig(): Config {
 }
 
 fun Context.generateYggConfig() {
-    execYgg("-genconf > yggdrasil.conf").waitFor()
+    val process = execYgg("-genconf > ${filesDir.absolutePath}/yggdrasil.conf")
+    process.waitFor()
+    val configBytes = process.inputStream.readBytes()
+    val configStr = String(configBytes)
+    val configFile = File(filesDir, "yggdrasil.conf")
+    configFile.writeText(configStr)
 }
 
 fun createNativeYggConfig(config: Config): NodeConfig {
@@ -58,4 +64,36 @@ fun Context.saveYggConfig(config: Config) {
     val configJson = gson.toJson(config)
     val configFile = File(filesDir, "yggdrasil.conf")
     configFile.writeText(configJson)
+}
+
+fun Context.installBinary() {
+    val type = "yggdrasil-$YGGDRASIL_VERSION-linux-${CPU_ABI.let {
+        when{
+            it.contains("v8") -> "arm64"
+            it.contains("v7") -> "armhf"
+            else -> throw Exception("Unsupported ABI")
+        }
+    }}"
+
+    yggBin.apply {
+        delete()
+        createNewFile()
+    }
+
+    val input = assets.open(type)
+    val output = yggBin.outputStream()
+
+    try {
+        input.copyTo(output)
+    } finally {
+        input.close(); output.close()
+    }
+
+    yggBin.setExecutable(true)
+
+    val yggConfig = getYggConfig() // it generates config automatically
+    yggConfig.ifName = "tun0"
+    saveYggConfig(yggConfig)
+
+    Log.i("Utils", "# Binary installed successfully")
 }
