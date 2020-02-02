@@ -2,6 +2,7 @@ package io.github.chronosx88.yggdrasil.models.config
 
 import com.google.gson.annotations.SerializedName
 
+// FIXME This is old config scheme
 data class Config (
 	@SerializedName("peers") var peers : List<String>,
 	@SerializedName("interfacePeers") var interfacePeers : Map<String, List<String>>,
