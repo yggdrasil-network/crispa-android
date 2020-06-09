@@ -18,6 +18,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    ndkVersion "21.2.6472646"
 }
 
 dependencies {
