@@ -16,13 +16,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.release
         }
-		ciRelease {
-		  signingConfig signingConfigs.ciRelease
-		}
     }
 	signingConfigs {
-	  ciRelease {
+	  release {
 		storeFile file(KEYSTORE)
 		storePassword System.getenv("KEYSTORE_PASSWORD")
 		keyAlias System.getenv("KEY_ALIAS")
