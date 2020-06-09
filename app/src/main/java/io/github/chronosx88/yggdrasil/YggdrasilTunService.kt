@@ -75,10 +75,7 @@ class YggdrasilTunService : VpnService() {
     }
 
     private fun fixConfig(config: MutableMap<Any?, Any?>): MutableMap<Any?, Any?> {
-
-        (config["Peers"] as MutableList<Any>)[0] = "tcp://194.177.21.156:5066"
-        (config["Peers"] as MutableList<Any>)[1] = "tcp://46.151.26.194:60575"
-        (config["Peers"] as MutableList<Any>)[2] = "tcp://188.226.125.64:54321"
+        config["Peers"] = "tcp://194.177.21.156:5066"
         config["Listen"] = ""
         config["AdminListen"] = "tcp://localhost:9001"
         config["IfName"] = "dummy"
