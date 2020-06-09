@@ -1,1 +1,2 @@
 configurations.maybeCreate("default")
+artifacts.add("default", file('yggdrasil.aar'))
