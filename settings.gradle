@@ -1,1 +1,2 @@
+include ':yggdrasil.aar'
 include ':app', ':yggdrasil'
