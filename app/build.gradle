@@ -12,13 +12,6 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-			signingConfig signingConfigs.release
-        }
-    }
 	signingConfigs {
 	  release {
 		storeFile file(KEYSTORE)
@@ -27,6 +20,13 @@ android {
 		keyPassword System.getenv("KEY_PASSWORD")
 	  }
 	}
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.release
+        }
+    }
 }
 
 dependencies {
