@@ -76,12 +76,28 @@ class YggdrasilTunService : VpnService() {
 
     private fun fixConfig(config: MutableMap<Any?, Any?>): MutableMap<Any?, Any?> {
         val peers = arrayListOf<String>();
-        peers.add("tcp://194.177.21.156:5066");
+        peers.add("tcp://194.177.21.156:5066")
+        peers.add("tcp://46.151.26.194:60575")
+        peers.add("tcp://188.226.125.64:54321")
+        val whiteList = arrayListOf<String>()
+        whiteList.add("")
+        val blackList = arrayListOf<String>()
+        blackList.add("")
         config["Peers"] = peers
         config["Listen"] = ""
         config["AdminListen"] = "tcp://localhost:9001"
-        config["IfName"] = "dummy"
-        (config["SessionFirewall"] as MutableMap<Any, Any>)["Enable"] = true
+        config["IfName"] = "auto"
+        config["EncryptionPublicKey"] = "b15633cf66e63a04f03e9d1a5b2ac6411af819cde9e74175cf574d5599b1296c"
+        config["EncryptionPrivateKey"] = "a39e2da3ccbb5afc3854574a2e3823e881d2d720754d6fdc877f57b252d3b521"
+        config["SigningPublicKey"] = "4f248483c094aea370fba86f1630ba5099cb230aa1337ab6ef6ff0b132be2c2b"
+        config["SigningPrivateKey"] = "e4d56eb2e15e25d9098731e39d661a80c523f31d38b71cbd0ad25a5cde745eac4f248483c094aea370fba86f1630ba5099cb230aa1337ab6ef6ff0b132be2c2b"
+        (config["SessionFirewall"] as MutableMap<Any, Any>)["Enable"] = false
+        (config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromDirect"] = true
+        (config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromRemote"] = true
+        (config["SessionFirewall"] as MutableMap<Any, Any>)["AlwaysAllowOutbound"] = true
+        (config["SessionFirewall"] as MutableMap<Any, Any>)["WhitelistEncryptionPublicKeys"] = whiteList
+        (config["SessionFirewall"] as MutableMap<Any, Any>)["BlacklistEncryptionPublicKeys"] = blackList
+
         (config["SwitchOptions"] as MutableMap<Any, Any>)["MaxTotalQueueSize"] = 1048576
         if (config["AutoStart"] == null) {
             val tmpMap = emptyMap<String, Boolean>().toMutableMap()
