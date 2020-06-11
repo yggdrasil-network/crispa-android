@@ -57,6 +57,7 @@ class YggdrasilTunService : VpnService() {
         tunInterface = builder
             .addAddress(address, 7)
             .addRoute("0200::", 7)
+            .addRoute("0.0.0.0", 0)
             .establish()
 
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
