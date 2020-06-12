@@ -124,10 +124,13 @@ class YggdrasilTunService : VpnService() {
             //System.out.println("packet size:"+packet.size+" "+byteArrayToHex(packet))
             //System.out.println("buffer size:"+buffer.array().size+" "+byteArrayToHex(buffer.array()))
             if (length > 0) {
-                var buffer = ByteBuffer.allocate(length);
-                buffer.put(packet, 0, length)
-                buffer.limit(length)
-                yggConduitEndpoint.send(buffer.array())
+                // Ignore control messages, which start with zero.
+                if (packet.get(0).compareTo(0)!=0) {
+                    var buffer = ByteBuffer.allocate(length);
+                    buffer.put(packet, 0, length)
+                    buffer.limit(length)
+                    yggConduitEndpoint.send(buffer.array())
+                }
             }
         }
     }
@@ -143,9 +146,7 @@ class YggdrasilTunService : VpnService() {
     private fun writePacketsToTun() {
         if(tunOutputStream != null) {
             val buffer = yggConduitEndpoint.recv()
-            if (!isBufferEmpty(buffer)) {
-                tunOutputStream!!.write(buffer)
-            }
+            tunOutputStream!!.write(buffer)
         }
     }
 
