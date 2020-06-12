@@ -61,7 +61,7 @@ class YggdrasilTunService : VpnService() {
 
         tunInterface = builder
             .addAddress(address, 7)
-            .addRoute("10.0.2.0", 24)
+            .addRoute("0.0.0.0", 1)
             .addRoute("0200::", 7)
             .setMtu(MAX_PACKET_SIZE)
             .establish()
