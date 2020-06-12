@@ -18,9 +18,9 @@ fun createNativeYggConfig(config: Config): NodeConfig {
     nativeConfig.adminListen = config.adminListen
     nativeConfig.encryptionPrivateKey = config.encryptionPrivateKey
     nativeConfig.encryptionPublicKey = config.encryptionPublicKey
-    nativeConfig.ifMTU = config.ifMTU
+    //nativeConfig.ifMTU = config.ifMTU
     nativeConfig.ifName = config.ifName
-    nativeConfig.ifTAPMode = config.ifTAPMode
+    //nativeConfig.ifTAPMode = config.ifTAPMode
     nativeConfig.nodeInfoPrivacy = config.nodeInfoPrivacy
     nativeConfig.signingPrivateKey = config.signingPrivateKey
     nativeConfig.signingPublicKey = config.signingPublicKey

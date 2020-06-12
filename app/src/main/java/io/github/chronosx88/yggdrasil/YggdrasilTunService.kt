@@ -15,11 +15,16 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 import kotlin.experimental.or
 
 
 class YggdrasilTunService : VpnService() {
+
+    /** Maximum packet size is constrained by the MTU, which is given as a signed short.  */
+    private val MAX_PACKET_SIZE = Short.MAX_VALUE.toInt()
+
     companion object {
         private var isRunning: Boolean = false
     }
@@ -56,7 +61,11 @@ class YggdrasilTunService : VpnService() {
 
         tunInterface = builder
             .addAddress(address, 7)
+            .addRoute("10.0.0.0", 8)
+            .addRoute("172.16.0.0", 12)
+            .addRoute("192.168.0.0", 16)
             .addRoute("0200::", 7)
+            .setMtu(MAX_PACKET_SIZE)
             .establish()
 
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
@@ -75,11 +84,30 @@ class YggdrasilTunService : VpnService() {
     }
 
     private fun fixConfig(config: MutableMap<Any?, Any?>): MutableMap<Any?, Any?> {
+        val peers = arrayListOf<String>();
+        peers.add("tcp://194.177.21.156:5066")
+        peers.add("tcp://46.151.26.194:60575")
+        peers.add("tcp://188.226.125.64:54321")
+        val whiteList = arrayListOf<String>()
+        whiteList.add("")
+        val blackList = arrayListOf<String>()
+        blackList.add("")
+        config["Peers"] = peers
         config["Listen"] = ""
         config["AdminListen"] = "tcp://localhost:9001"
-        config["IfName"] = "dummy"
-        (config["SessionFirewall"] as MutableMap<Any, Any>)["Enable"] = true
-        (config["SwitchOptions"] as MutableMap<Any, Any>)["MaxTotalQueueSize"] = 1048576
+        config["IfName"] = "tun0"
+        //config["EncryptionPublicKey"] = "b15633cf66e63a04f03e9d1a5b2ac6411af819cde9e74175cf574d5599b1296c"
+        //config["EncryptionPrivateKey"] = "a39e2da3ccbb5afc3854574a2e3823e881d2d720754d6fdc877f57b252d3b521"
+        //config["SigningPublicKey"] = "4f248483c094aea370fba86f1630ba5099cb230aa1337ab6ef6ff0b132be2c2b"
+        //config["SigningPrivateKey"] = "e4d56eb2e15e25d9098731e39d661a80c523f31d38b71cbd0ad25a5cde745eac4f248483c094aea370fba86f1630ba5099cb230aa1337ab6ef6ff0b132be2c2b"
+        (config["SessionFirewall"] as MutableMap<Any, Any>)["Enable"] = false
+        //(config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromDirect"] = true
+        //(config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromRemote"] = true
+        //(config["SessionFirewall"] as MutableMap<Any, Any>)["AlwaysAllowOutbound"] = true
+        //(config["SessionFirewall"] as MutableMap<Any, Any>)["WhitelistEncryptionPublicKeys"] = whiteList
+        //(config["SessionFirewall"] as MutableMap<Any, Any>)["BlacklistEncryptionPublicKeys"] = blackList
+
+        (config["SwitchOptions"] as MutableMap<Any, Any>)["MaxTotalQueueSize"] = 4194304
         if (config["AutoStart"] == null) {
             val tmpMap = emptyMap<String, Boolean>().toMutableMap()
             tmpMap["WiFi"] = false
@@ -91,10 +119,20 @@ class YggdrasilTunService : VpnService() {
 
     private fun readPacketsFromTun() {
         if(tunInputStream != null) {
-            val buffer = ByteArray(1024)
-            tunInputStream!!.read(buffer)
-            if (!isBufferEmpty(buffer)) {
-                yggConduitEndpoint.send(buffer)
+            var packet: ByteArray = ByteArray(MAX_PACKET_SIZE)
+            // Read the outgoing packet from the input stream.
+            var length = tunInputStream!!.read(packet)
+
+            //System.out.println("packet size:"+packet.size+" "+byteArrayToHex(packet))
+            //System.out.println("buffer size:"+buffer.array().size+" "+byteArrayToHex(buffer.array()))
+            if (length > 0) {
+                // Ignore control messages, which start with zero.
+                if (packet.get(0).compareTo(0)!=0) {
+                    var buffer = ByteBuffer.allocate(length);
+                    buffer.put(packet, 0, length)
+                    buffer.limit(length)
+                    yggConduitEndpoint.send(buffer.array())
+                }
             }
         }
     }
@@ -110,9 +148,7 @@ class YggdrasilTunService : VpnService() {
     private fun writePacketsToTun() {
         if(tunOutputStream != null) {
             val buffer = yggConduitEndpoint.recv()
-            if (!isBufferEmpty(buffer)) {
-                tunOutputStream!!.write(buffer)
-            }
+            tunOutputStream!!.write(buffer)
         }
     }
 
