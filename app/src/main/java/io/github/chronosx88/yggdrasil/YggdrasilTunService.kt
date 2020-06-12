@@ -15,11 +15,16 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 import kotlin.experimental.or
 
 
 class YggdrasilTunService : VpnService() {
+
+    /** Maximum packet size is constrained by the MTU, which is given as a signed short.  */
+    private val MAX_PACKET_SIZE = Short.MAX_VALUE.toInt()
+
     companion object {
         private var isRunning: Boolean = false
     }
@@ -56,8 +61,9 @@ class YggdrasilTunService : VpnService() {
 
         tunInterface = builder
             .addAddress(address, 7)
-            .addRoute("::", 0)
-            //.addRoute("0.0.0.0", 0)
+            .addRoute("10.0.2.0", 24)
+            .addRoute("0200::", 7)
+            .setMtu(MAX_PACKET_SIZE)
             .establish()
 
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
@@ -99,7 +105,7 @@ class YggdrasilTunService : VpnService() {
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["WhitelistEncryptionPublicKeys"] = whiteList
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["BlacklistEncryptionPublicKeys"] = blackList
 
-        (config["SwitchOptions"] as MutableMap<Any, Any>)["MaxTotalQueueSize"] = 1048576
+        (config["SwitchOptions"] as MutableMap<Any, Any>)["MaxTotalQueueSize"] = 4194304
         if (config["AutoStart"] == null) {
             val tmpMap = emptyMap<String, Boolean>().toMutableMap()
             tmpMap["WiFi"] = false
@@ -111,10 +117,17 @@ class YggdrasilTunService : VpnService() {
 
     private fun readPacketsFromTun() {
         if(tunInputStream != null) {
-            val buffer = ByteArray(1024)
-            tunInputStream!!.read(buffer)
-            if (!isBufferEmpty(buffer)) {
-                yggConduitEndpoint.send(buffer)
+            var packet: ByteArray = ByteArray(MAX_PACKET_SIZE)
+            // Read the outgoing packet from the input stream.
+            var length = tunInputStream!!.read(packet)
+
+            //System.out.println("packet size:"+packet.size+" "+byteArrayToHex(packet))
+            //System.out.println("buffer size:"+buffer.array().size+" "+byteArrayToHex(buffer.array()))
+            if (length > 0) {
+                var buffer = ByteBuffer.allocate(length);
+                buffer.put(packet, 0, length)
+                buffer.limit(length)
+                yggConduitEndpoint.send(buffer.array())
             }
         }
     }
