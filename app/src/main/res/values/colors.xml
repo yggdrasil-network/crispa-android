@@ -6,7 +6,7 @@
     <color name="white">#ffffff</color>
     <color name="green">#83cf03</color>
     <color name="grey">#343334</color>
-    <color name="transparent">#555555</color>
-    <color name="dark_pink">#666666</color>
-    <color name="pink">#777777</color>
+    <color name="dark_5">#555555</color>
+    <color name="dark_10">#666666</color>
+    <color name="dark_20">#777777</color>
 </resources>

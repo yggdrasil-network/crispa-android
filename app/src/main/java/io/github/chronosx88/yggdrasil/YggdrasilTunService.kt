@@ -1,6 +1,6 @@
 package io.github.chronosx88.yggdrasil
 
-import android.app.Service
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -20,7 +20,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
-import kotlin.experimental.or
 
 
 class YggdrasilTunService : VpnService() {
@@ -29,7 +28,7 @@ class YggdrasilTunService : VpnService() {
     private val MAX_PACKET_SIZE = Short.MAX_VALUE.toInt()
 
     companion object {
-        private var isRunning: Boolean = false
+        private const val TAG = "Yggdrasil-service"
     }
     private var tunInterface: ParcelFileDescriptor? = null
     private lateinit var yggConduitEndpoint: ConduitEndpoint
@@ -42,16 +41,16 @@ class YggdrasilTunService : VpnService() {
         if (intent?.getStringExtra("COMMAND") == "STOP") {
             stopVpn()
         }
-        return Service.START_STICKY
+        if (intent?.getStringExtra("COMMAND") == "START") {
+            val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
+            setupTunInterface(pi)
+        }
+
+        return super.onStartCommand(intent, flags, startId);
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        isRunning = true
-        setupTunInterface()
-    }
-
-    private fun setupTunInterface() {
+    private fun setupTunInterface(pi: PendingIntent) {
+        pi.send(MainActivity.STATUS_START);
         val builder = Builder()
         val ygg = Yggdrasil()
         var configJson = Mobile.generateConfigJSON()
@@ -86,6 +85,8 @@ class YggdrasilTunService : VpnService() {
                 writePacketsToTun()
             }
         }
+        val intent: Intent = Intent().putExtra(MainActivity.IPv6, address)
+        pi.send(this, MainActivity.STATUS_FINISH, intent)
     }
 
     private fun getNonVpnNetworks(Address: String): Array<Network> {
@@ -162,7 +163,6 @@ class YggdrasilTunService : VpnService() {
     }
 
     fun stopVpn() {
-        isRunning = false
         readCoroutine.cancel()
         writeCoroutine.cancel()
         tunInterface!!.close()

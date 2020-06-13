@@ -6,6 +6,38 @@
         android:layout_height="match_parent"
         android:background="@color/grey"
         tools:context=".MainActivity">
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toTopOf="@+id/connectRadioGroup"
+            app:layout_constraintTop_toTopOf="parent"
+            android:orientation="vertical"
+            android:gravity="left">
+        <TextView
+                android:id="@+id/ipLabel"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@color/dark_10"
+                android:elevation="8dp"
+                android:gravity="center_vertical"
+                android:text="Your IP address:"
+                android:textColor="@color/white"
+                android:paddingLeft="20dp"/>
+
+        <TextView
+                android:id="@+id/ip"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:background="@color/dark_10"
+                android:elevation="8dp"
+                android:gravity="center_vertical"
+                android:text=""
+                android:textColor="@color/white"
+                android:paddingLeft="20dp"
+                app:layout_constraintBottom_toTopOf="@+id/connectRadioGroup"
+                app:layout_constraintTop_toTopOf="parent"/>
+    </LinearLayout>
+
 
     <RadioGroup
             android:id="@+id/connectRadioGroup"
