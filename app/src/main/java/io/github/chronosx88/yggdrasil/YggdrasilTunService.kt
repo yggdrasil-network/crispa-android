@@ -1,7 +1,10 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import com.google.gson.Gson
@@ -36,7 +39,9 @@ class YggdrasilTunService : VpnService() {
     private lateinit var writeCoroutine: CoroutineContext
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
+        if (intent?.getStringExtra("COMMAND") == "STOP") {
+            stopVpn()
+        }
         return Service.START_STICKY
     }
 
@@ -83,6 +88,22 @@ class YggdrasilTunService : VpnService() {
         }
     }
 
+    private fun getNonVpnNetworks(Address: String): Array<Network> {
+        val cm =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networks = cm.allNetworks
+        for (network in networks) {
+            val linkProperties = cm.getLinkProperties(network)
+            val addresses = linkProperties.linkAddresses
+            for (addr in addresses) {
+                if (addr.toString().startsWith(Address)) {
+                    return arrayOf(network)
+                }
+            }
+        }
+        return emptyArray<Network>()
+    }
+
     private fun fixConfig(config: MutableMap<Any?, Any?>): MutableMap<Any?, Any?> {
         val peers = arrayListOf<String>();
         peers.add("tcp://194.177.21.156:5066")
@@ -123,26 +144,14 @@ class YggdrasilTunService : VpnService() {
             // Read the outgoing packet from the input stream.
             var length = tunInputStream!!.read(packet)
 
-            //System.out.println("packet size:"+packet.size+" "+byteArrayToHex(packet))
-            //System.out.println("buffer size:"+buffer.array().size+" "+byteArrayToHex(buffer.array()))
             if (length > 0) {
-                // Ignore control messages, which start with zero.
-                if (packet.get(0).compareTo(0)!=0) {
-                    var buffer = ByteBuffer.allocate(length);
-                    buffer.put(packet, 0, length)
-                    buffer.limit(length)
-                    yggConduitEndpoint.send(buffer.array())
-                }
+                var buffer = ByteBuffer.allocate(length);
+                buffer.put(packet, 0, length)
+                buffer.limit(length)
+                yggConduitEndpoint.send(buffer.array())
+
             }
         }
-    }
-
-    private fun isBufferEmpty(buffer: ByteArray): Boolean {
-        var sum: Byte = 0
-        for (i in buffer) {
-            sum.or(i)
-        }
-        return sum == 0.toByte()
     }
 
     private fun writePacketsToTun() {
@@ -152,12 +161,17 @@ class YggdrasilTunService : VpnService() {
         }
     }
 
-    override fun onRevoke() {
-        super.onRevoke()
+    fun stopVpn() {
         isRunning = false
         readCoroutine.cancel()
         writeCoroutine.cancel()
         tunInterface!!.close()
         tunInterface = null
+        stopSelf()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopSelf()
     }
 }

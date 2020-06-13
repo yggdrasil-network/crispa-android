@@ -4,48 +4,55 @@ import android.app.Activity
 import android.content.Intent
 import android.net.VpnService
 import android.os.Bundle
-import android.widget.Button
+import android.util.Log
+import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatActivity
 
 
 class MainActivity : AppCompatActivity() {
-    private var isYggStarted = false
+    companion object {
+        private const val TAG="Yggdrasil";
+        private const val VPN_REQUEST_CODE = 0x0F
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val connectRadioGroup = findViewById<RadioGroup>(R.id.connectRadioGroup)
+        connectRadioGroup.setOnCheckedChangeListener(
+                RadioGroup.OnCheckedChangeListener { group, checkedId ->
+                    when (checkedId) {
+                        R.id.disconnectButton -> stopVpn()
+                        R.id.connectButton -> startVpn()
+                        else -> { // Note the block
+                            //print("x is neither 1 nor 2")
+                        }
+                    }
+                })
+    }
 
-        val connectButton = findViewById<Button>(R.id.connect_button)
-        connectButton.setOnClickListener {
-            if(!isYggStarted) {
-                // Prepare to establish a VPN connection.
-                // This method returns null if the VPN application is already prepared
-                // or if the user has previously consented to the VPN application.
-                // Otherwise, it returns an Intent to a system activity.
-                val vpnIntent = VpnService.prepare(this)
-                if (vpnIntent != null) startActivityForResult(
-                    vpnIntent,
-                    0x0F
-                )
-                else onActivityResult(0x0F, Activity.RESULT_OK, null)
-            } else {
-                // FIXME fix this shit, this code doesn't stop service for some reasons
-                val intent = Intent(this, YggdrasilTunService::class.java)
-                stopService(intent)
-                connectButton.text = "Connect"
-                isYggStarted = false
-            }
+    fun stopVpn(){
+        Log.d(TAG,"Stop")
+        val intent = Intent(this, YggdrasilTunService::class.java)
+        intent.putExtra("COMMAND", "STOP")
+        startService(intent)
+    }
+
+    fun startVpn(){
+        Log.d(TAG,"Start")
+        val intent= VpnService.prepare(this)
+        if (intent!=null){
+            startActivityForResult(intent, VPN_REQUEST_CODE);
+        }else{
+            onActivityResult(VPN_REQUEST_CODE, Activity.RESULT_OK, null);
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 0x0F && resultCode == Activity.RESULT_OK) {
+        if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_OK){
             val intent = Intent(this, YggdrasilTunService::class.java)
             startService(intent)
-            val connectButton = findViewById<Button>(R.id.connect_button)
-            connectButton.text = "Disconnect"
-            isYggStarted = true
         }
     }
 }
