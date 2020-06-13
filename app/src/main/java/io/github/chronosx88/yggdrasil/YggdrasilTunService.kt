@@ -14,10 +14,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import mobile.Mobile
 import mobile.Yggdrasil
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
@@ -75,9 +72,12 @@ class YggdrasilTunService : VpnService() {
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
         tunOutputStream = FileOutputStream(tunInterface!!.fileDescriptor)
         readCoroutine = GlobalScope.launch {
-            // FIXME it will throw exception (bad file descriptor) when coroutine will be canceled
             while (true) {
-                readPacketsFromTun()
+                try{
+                    readPacketsFromTun()
+                } catch (e: IOException){
+                    e.printStackTrace()
+                }
             }
         }
         writeCoroutine = GlobalScope.launch {
