@@ -7,6 +7,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
+import android.system.OsConstants
 import com.google.gson.Gson
 import dummy.ConduitEndpoint
 import kotlinx.coroutines.GlobalScope
@@ -62,9 +63,7 @@ class YggdrasilTunService : VpnService() {
 
         tunInterface = builder
             .addAddress(address, 7)
-            .addRoute("10.0.0.0", 8)
-            .addRoute("172.16.0.0", 12)
-            .addRoute("192.168.0.0", 16)
+            .allowFamily(OsConstants.AF_INET)
             .addRoute("0200::", 7)
             .setMtu(MAX_PACKET_SIZE)
             .establish()
