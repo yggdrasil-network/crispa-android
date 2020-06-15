@@ -67,9 +67,10 @@ class YggdrasilTunService : VpnService() {
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
         tunOutputStream = FileOutputStream(tunInterface!!.fileDescriptor)
         readCoroutine = GlobalScope.launch {
+            var buffer = ByteArray(2048)
             while (true) {
                 try{
-                    readPacketsFromTun()
+                    readPacketsFromTun(buffer)
                 } catch (e: IOException){
                     e.printStackTrace()
                 }
@@ -118,15 +119,14 @@ class YggdrasilTunService : VpnService() {
         return config
     }
 
-    private fun readPacketsFromTun() {
+    private fun readPacketsFromTun(buffer: ByteArray) {
         if(tunInputStream != null) {
-            var packet = ByteArray(2048)
             // Read the outgoing packet from the input stream.
-            var length = tunInputStream!!.read(packet)
+            var length = tunInputStream!!.read(buffer)
             if (length > 0) {
-                var buffer = ByteBuffer.allocate(length);
-                buffer.put(packet, 0, length)
-                yggConduitEndpoint.send(buffer.array())
+                var byteBuffer = ByteBuffer.allocate(length);
+                byteBuffer.put(buffer, 0, length)
+                yggConduitEndpoint.send(byteBuffer.array())
             } else {
                 Thread.sleep(10)
             }
