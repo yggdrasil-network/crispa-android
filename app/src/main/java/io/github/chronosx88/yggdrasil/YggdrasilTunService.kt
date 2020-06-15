@@ -1,10 +1,7 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.Network
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
@@ -126,13 +123,12 @@ class YggdrasilTunService : VpnService() {
             var packet = ByteArray(2048)
             // Read the outgoing packet from the input stream.
             var length = tunInputStream!!.read(packet)
-
             if (length > 0) {
                 var buffer = ByteBuffer.allocate(length);
                 buffer.put(packet, 0, length)
-                buffer.limit(length)
                 yggConduitEndpoint.send(buffer.array())
-
+            } else {
+                Thread.sleep(10)
             }
         }
     }
