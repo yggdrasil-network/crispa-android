@@ -87,22 +87,6 @@ class YggdrasilTunService : VpnService() {
         pi.send(this, MainActivity.STATUS_FINISH, intent)
     }
 
-    private fun getNonVpnNetworks(Address: String): Array<Network> {
-        val cm =
-            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networks = cm.allNetworks
-        for (network in networks) {
-            val linkProperties = cm.getLinkProperties(network)
-            val addresses = linkProperties.linkAddresses
-            for (addr in addresses) {
-                if (addr.toString().startsWith(Address)) {
-                    return arrayOf(network)
-                }
-            }
-        }
-        return emptyArray<Network>()
-    }
-
     private fun fixConfig(config: MutableMap<Any?, Any?>): MutableMap<Any?, Any?> {
         val peers = arrayListOf<String>();
         peers.add("tcp://194.177.21.156:5066")
@@ -139,7 +123,7 @@ class YggdrasilTunService : VpnService() {
 
     private fun readPacketsFromTun() {
         if(tunInputStream != null) {
-            var packet: ByteArray = ByteArray(MAX_PACKET_SIZE)
+            var packet = ByteArray(2048)
             // Read the outgoing packet from the input stream.
             var length = tunInputStream!!.read(packet)
 
