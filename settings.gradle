@@ -1,2 +1,1 @@
-include ':yggdrasil-sources'
 include ':app', ':yggdrasil'
