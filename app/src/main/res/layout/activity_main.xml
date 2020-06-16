@@ -43,7 +43,7 @@
             android:id="@+id/connectRadioGroup"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:background="@drawable/pink_out_line"
+            android:background="@drawable/out_line"
             android:checkedButton="@+id/offer"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
