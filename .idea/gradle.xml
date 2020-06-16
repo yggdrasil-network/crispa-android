@@ -12,7 +12,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/yggdrasil" />
-            <option value="$PROJECT_DIR$/yggdrasil.aar" />
+            <option value="$PROJECT_DIR$/yggdrasil-sources" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
