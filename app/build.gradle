@@ -30,16 +30,6 @@ android {
     ndkVersion "21.2.6472646"
 }
 
-task ndkBuild(type: Exec) {
-    def rootDir = project.rootDir
-    workingDir = new File(rootDir,"yggdrasil")
-    commandLine 'make'
-}
-
-gradle.projectsEvaluated {
-    tasks.compileDebugKotlin.dependsOn(ndkBuild)
-}
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(path: ':yggdrasil')
