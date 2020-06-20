@@ -2,4 +2,14 @@
     <string name="app_name">Yggdrasil</string>
     <string name="connect_button">Connect</string>
     <string name="disconnect_button">Disconnect</string>
+    <string name="switch_button_title">SwitchOn</string>
+    <string name="title_activity_peer_list">Edit peers</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 </resources>

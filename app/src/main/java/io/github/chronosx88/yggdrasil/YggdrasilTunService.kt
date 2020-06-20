@@ -19,6 +19,9 @@ import kotlin.coroutines.CoroutineContext
 
 class YggdrasilTunService : VpnService() {
 
+    private lateinit var ygg: Yggdrasil
+    private var isClosed = false
+
     /** Maximum packet size is constrained by the MTU, which is given as a signed short.  */
     private val MAX_PACKET_SIZE = Short.MAX_VALUE.toInt()
 
@@ -33,26 +36,29 @@ class YggdrasilTunService : VpnService() {
     private lateinit var writeCoroutine: CoroutineContext
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.getStringExtra("COMMAND") == "STOP") {
-            stopVpn()
-        }
-        if (intent?.getStringExtra("COMMAND") == "START") {
+
+        if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.STOP) {
             val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
-            setupTunInterface(pi)
+            stopVpn(pi)
+        }
+        if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.START) {
+            val peers = intent.getStringArrayListExtra(MainActivity.PEERS)
+            val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
+            ygg = Yggdrasil()
+            setupTunInterface(pi, peers)
         }
 
-        return super.onStartCommand(intent, flags, startId);
+        return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun setupTunInterface(pi: PendingIntent) {
-        pi.send(MainActivity.STATUS_START);
+    private fun setupTunInterface(pi: PendingIntent, peers: ArrayList<String>) {
+        pi.send(MainActivity.STATUS_START)
         val builder = Builder()
-        val ygg = Yggdrasil()
+
         var configJson = Mobile.generateConfigJSON()
         val gson = Gson()
-
         var config = gson.fromJson(String(configJson), Map::class.java).toMutableMap()
-        config = fixConfig(config)
+        config = fixConfig(config, peers)
         configJson = gson.toJson(config).toByteArray()
 
         yggConduitEndpoint = ygg.startJSON(configJson)
@@ -67,13 +73,14 @@ class YggdrasilTunService : VpnService() {
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
         tunOutputStream = FileOutputStream(tunInterface!!.fileDescriptor)
         readCoroutine = GlobalScope.launch {
-            var buffer = ByteArray(2048)
-            while (true) {
-                try{
-                    readPacketsFromTun(buffer)
-                } catch (e: IOException){
-                    e.printStackTrace()
+            val buffer = ByteArray(2048)
+            try{
+                while (true) {
+                        readPacketsFromTun(buffer)
                 }
+            } catch (e: IOException){
+                e.printStackTrace()
+                tunInputStream!!.close()
             }
         }
         writeCoroutine = GlobalScope.launch {
@@ -85,11 +92,8 @@ class YggdrasilTunService : VpnService() {
         pi.send(this, MainActivity.STATUS_FINISH, intent)
     }
 
-    private fun fixConfig(config: MutableMap<Any?, Any?>): MutableMap<Any?, Any?> {
-        val peers = arrayListOf<String>();
-        peers.add("tcp://194.177.21.156:5066")
-        peers.add("tcp://46.151.26.194:60575")
-        peers.add("tcp://188.226.125.64:54321")
+    private fun fixConfig(config: MutableMap<Any?, Any?>, peers: ArrayList<String>): MutableMap<Any?, Any?> {
+
         val whiteList = arrayListOf<String>()
         whiteList.add("")
         val blackList = arrayListOf<String>()
@@ -120,11 +124,11 @@ class YggdrasilTunService : VpnService() {
     }
 
     private fun readPacketsFromTun(buffer: ByteArray) {
-        if(tunInputStream != null) {
+        if(!isClosed) {
             // Read the outgoing packet from the input stream.
-            var length = tunInputStream!!.read(buffer)
+            val length = tunInputStream!!.read(buffer)
             if (length > 0) {
-                var byteBuffer = ByteBuffer.allocate(length);
+                val byteBuffer = ByteBuffer.allocate(length)
                 byteBuffer.put(buffer, 0, length)
                 yggConduitEndpoint.send(byteBuffer.array())
             } else {
@@ -140,12 +144,19 @@ class YggdrasilTunService : VpnService() {
         }
     }
 
-    fun stopVpn() {
-        readCoroutine.cancel()
-        writeCoroutine.cancel()
+    private fun stopVpn(pi: PendingIntent) {
+        isClosed = true;
+        readCoroutine!!.cancel()
+        writeCoroutine!!.cancel()
+        tunInputStream!!.close()
+        tunOutputStream!!.close()
         tunInterface!!.close()
         tunInterface = null
-        stopSelf()
+        //this hack due to https://github.com/yggdrasil-network/yggdrasil-go/issues/714 bug
+        ygg.startAutoconfigure()
+        ygg.stop()
+        val intent: Intent = Intent()
+        pi.send(this, MainActivity.STATUS_STOP, intent)
     }
 
     override fun onDestroy() {

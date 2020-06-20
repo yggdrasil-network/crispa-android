@@ -6,78 +6,92 @@
         android:layout_height="match_parent"
         android:background="@color/grey"
         tools:context=".MainActivity">
+
     <LinearLayout
+            android:id="@+id/ipLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintBottom_toTopOf="@+id/connectRadioGroup"
-            app:layout_constraintTop_toTopOf="parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:background="@drawable/rounded_corner"
+            android:gravity="left"
             android:orientation="vertical"
-            android:gravity="left">
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
+            android:animateLayoutChanges="true">
+
         <TextView
                 android:id="@+id/ipLabel"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:background="@color/dark_10"
+                android:background="@android:color/transparent"
                 android:elevation="8dp"
                 android:gravity="center_vertical"
+                android:paddingLeft="20dp"
                 android:text="Your IP address:"
-                android:textColor="@color/white"
-                android:paddingLeft="20dp"/>
-
+                android:textColor="@color/dark_30" />
         <TextView
                 android:id="@+id/ip"
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
-                android:background="@color/dark_10"
+                android:background="@android:color/transparent"
                 android:elevation="8dp"
                 android:gravity="center_vertical"
+                android:paddingLeft="20dp"
+                android:layout_marginBottom="10dp"
                 android:text=""
                 android:textColor="@color/white"
-                android:paddingLeft="20dp"
                 app:layout_constraintBottom_toTopOf="@+id/connectRadioGroup"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
+
     </LinearLayout>
 
-
-    <RadioGroup
-            android:id="@+id/connectRadioGroup"
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:background="@drawable/out_line"
-            android:checkedButton="@+id/offer"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:layout_editor_absoluteX="50dp">
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:background="@drawable/rounded_corner"
+            android:gravity="left"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/ipLayout">
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                app:layout_constraintTop_toTopOf="parent"
+                android:orientation="horizontal">
 
-        <RadioButton
-                android:id="@+id/disconnectButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="1dp"
-                android:layout_marginTop="1dp"
-                android:layout_marginBottom="1dp"
-                android:layout_weight="1"
-                android:background="@drawable/toggle_widget_background"
-                android:button="@null"
-                android:gravity="center"
-                android:text="@string/disconnect_button"
-                android:textColor="@color/white"
-                android:checked="true"/>
+            <TextView
+                    android:id="@+id/ipPeers"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@android:color/transparent"
+                    android:elevation="8dp"
+                    android:gravity="center_vertical"
+                    android:text="Peers:"
+                    android:textColor="@color/dark_30"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/edit"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            <Button
+                    android:id="@+id/edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="EDIT"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:background="@android:color/transparent"/>
 
-        <RadioButton
-                android:id="@+id/connectButton"
-                android:layout_width="0dp"
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        <ListView
+                android:id="@+id/peers"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="1dp"
-                android:layout_marginRight="1dp"
-                android:layout_marginBottom="1dp"
-                android:layout_weight="1"
-                android:background="@drawable/toggle_widget_background"
-                android:button="@null"
-                android:gravity="center"
-                android:text="@string/connect_button"
-                android:textColor="@color/white" />
-    </RadioGroup>
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp"
+                android:dividerHeight="0dp"
+                android:divider="@null"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
