@@ -97,11 +97,12 @@ class PeerListActivity : AppCompatActivity() {
 
     fun ping(address: InetAddress, port:Int): Int {
         val start = System.currentTimeMillis()
+        val socket = Socket()
         try {
-            val socket = Socket()
             socket.connect(InetSocketAddress(address, port), 5000)
             socket.close()
         } catch (e: Exception) {
+            //silently pass
             return Int.MAX_VALUE
         }
         return (System.currentTimeMillis() - start).toInt()
@@ -119,53 +120,66 @@ class PeerListActivity : AppCompatActivity() {
         var peerList = findViewById<ListView>(R.id.peerList)
         var instance = this
         GlobalScope.launch {
-            var json = downloadJson(PEER_LIST_URL)
-            var countries = CCPCountry.getLibraryMasterCountriesEnglish()
-            val mapType: Type = object :
-                TypeToken<Map<String?, Map<String, Status>>>() {}.type
-            val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
-            val allOnlinePeers = arrayListOf<PeerInfo>()
-            for ((country, peers) in peersMap.entries) {
-                println("$country:")
-                for ((peer, status) in peers) {
-                    if(status.up){
-                        for (ccp in countries){
-                            if(ccp.name.toLowerCase().contains(country.replace(".md","").replace("-", " "))){
-                                var url = URI(peer)
-                                var address = InetAddress.getByName(url.host)
-                                var ping = ping(address, url.port)
-                                var peerInfo = PeerInfo(url.scheme, address, url.port, ccp.nameCode)
-                                peerInfo.ping = ping
-                                allOnlinePeers.add(peerInfo)
+            try {
+                var json = downloadJson(PEER_LIST_URL)
+                var countries = CCPCountry.getLibraryMasterCountriesEnglish()
+                val mapType: Type = object :
+                    TypeToken<Map<String?, Map<String, Status>>>() {}.type
+                val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
+                val allOnlinePeers = arrayListOf<PeerInfo>()
+                for ((country, peers) in peersMap.entries) {
+                    println("$country:")
+                    for ((peer, status) in peers) {
+                        if (status.up) {
+                            for (ccp in countries) {
+                                if (ccp.name.toLowerCase()
+                                        .contains(country.replace(".md", "").replace("-", " "))
+                                ) {
+                                    var url = URI(peer)
+                                    try {
+                                        var address = InetAddress.getByName(url.host)
+                                        var ping = ping(address, url.port)
+                                        var peerInfo =
+                                            PeerInfo(url.scheme, address, url.port, ccp.nameCode)
+                                        peerInfo.ping = ping
+                                        allOnlinePeers.add(peerInfo)
+                                    } catch (e: Throwable){
+                                        e.printStackTrace()
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-            if(allOnlinePeers.size>0){
-                allPeers = ArrayList(allOnlinePeers.sortedWith(compareBy { it.ping }))
-            }
+                if (allOnlinePeers.size > 0) {
+                    allPeers = ArrayList(allOnlinePeers.sortedWith(compareBy { it.ping }))
+                }
 
-            if (extras != null) {
-                var cp = MainActivity.deserializeStringList2PeerInfoList(extras.getStringArrayList(MainActivity.PEER_LIST)!!)
-                var currentPeers = ArrayList(cp)
-                for(peerInfo in allPeers){
-                    if(currentPeers.contains(peerInfo)){
-                        currentPeers.remove(peerInfo)
+                if (extras != null) {
+                    var cp = MainActivity.deserializeStringList2PeerInfoList(
+                        extras.getStringArrayList(MainActivity.PEER_LIST)!!
+                    )
+                    var currentPeers = ArrayList(cp)
+                    for (peerInfo in allPeers) {
+                        if (currentPeers.contains(peerInfo)) {
+                            currentPeers.remove(peerInfo)
+                        }
+                    }
+                    for (currentPeer in currentPeers) {
+                        allPeers.add(0, currentPeer)
+                    }
+                    var adapter = SelectPeerInfoListAdapter(instance, allPeers, cp)
+                    withContext(Dispatchers.Main) {
+                        peerList.adapter = adapter
+                    }
+                } else {
+                    var adapter = SelectPeerInfoListAdapter(instance, allPeers, ArrayList())
+                    withContext(Dispatchers.Main) {
+                        peerList.adapter = adapter
                     }
                 }
-                for(currentPeer in currentPeers){
-                    allPeers.add(0, currentPeer)
-                }
-                var adapter = SelectPeerInfoListAdapter(instance, allPeers, cp)
-                withContext(Dispatchers.Main) {
-                    peerList.adapter = adapter
-                }
-            } else {
-                var adapter = SelectPeerInfoListAdapter(instance, allPeers, ArrayList())
-                withContext(Dispatchers.Main) {
-                    peerList.adapter = adapter
-                }
+            } catch (e: Throwable){
+                e.printStackTrace()
             }
         }
     }
