@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import io.github.chronosx88.yggdrasil.models.PeerInfo
+import io.github.chronosx88.yggdrasil.models.config.PeerInfoListAdapter
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
@@ -22,7 +23,6 @@ import kotlin.collections.HashSet
 class MainActivity : AppCompatActivity() {
 
     companion object {
-
         const val COMMAND = "COMMAND"
         const val STOP = "STOP"
         const val START = "START"
@@ -34,14 +34,34 @@ class MainActivity : AppCompatActivity() {
         const val PEERS: String = "PEERS"
         const val PEER_LIST_CODE = 1000
         const val PEER_LIST = "PEERS_LIST"
-        const val CURRENT_PEERS = "CURRENT_PEERS"
+        const val CURRENT_PEERS = "CURRENT_PEER_INFO"
         const val START_VPN = "START_VPN"
         private const val TAG="Yggdrasil"
         private const val VPN_REQUEST_CODE = 0x0F
+
+        @JvmStatic
+        fun deserializeStringList2PeerInfoList(list: ArrayList<String>): ArrayList<PeerInfo> {
+            var gson = Gson()
+            var out = ArrayList<PeerInfo>()
+            for(s in list) {
+                out.add(gson.fromJson(s, PeerInfo::class.java))
+            }
+            return out
+        }
+
+        @JvmStatic
+        fun serializePeerInfoList2StringList(list: ArrayList<PeerInfo>): ArrayList<String> {
+            var gson = Gson()
+            var out = ArrayList<String>()
+            for(p in list) {
+                out.add(gson.toJson(p))
+            }
+            return out
+        }
     }
 
     private var startVpnFlag = false
-    private var currentPeers = arrayListOf<String>()
+    private var currentPeers = arrayListOf<PeerInfo>()
     private var isStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,18 +71,14 @@ class MainActivity : AppCompatActivity() {
         //save to shared preferences
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-        currentPeers = ArrayList(preferences.getStringSet(CURRENT_PEERS, HashSet())!!)
-        if(currentPeers.size==0) {
-            currentPeers.add("tcp://194.177.21.156:5066")
-            currentPeers.add("tcp://46.151.26.194:60575")
-            currentPeers.add("tcp://188.226.125.64:54321")
-        }
-        val adapter = ArrayAdapter(this, R.layout.peers_list_item, currentPeers)
+        currentPeers = deserializeStringList2PeerInfoList(ArrayList(preferences.getStringSet(CURRENT_PEERS, HashSet())!!))
+
+        val adapter = PeerInfoListAdapter(this, currentPeers)
         listView.adapter = adapter
-        val editBeersButton = findViewById<Button>(R.id.edit)
-        editBeersButton.setOnClickListener {
+        val editPeersButton = findViewById<Button>(R.id.edit)
+        editPeersButton.setOnClickListener {
             val intent = Intent(this, PeerListActivity::class.java)
-            intent.putStringArrayListExtra(PEER_LIST, currentPeers)
+            intent.putStringArrayListExtra(PEER_LIST, serializePeerInfoList2StringList(currentPeers))
             startActivityForResult(intent, PEER_LIST_CODE)
         }
         if(intent.extras!==null) {
@@ -95,32 +111,33 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_OK){
+            if(currentPeers.size==0){
+                showNoPeersSelected()
+                return
+            }
             val intent = Intent(this, YggdrasilTunService::class.java)
             val TASK_CODE = 100
             val pi = createPendingResult(TASK_CODE, intent, 0)
             intent.putExtra(PARAM_PINTENT, pi)
             intent.putExtra(COMMAND, START)
-            intent.putStringArrayListExtra(PEERS, currentPeers)
+            intent.putStringArrayListExtra(PEERS, serializePeerInfoList2StringList(currentPeers))
             startService(intent)
         }
         if (requestCode == PEER_LIST_CODE && resultCode== Activity.RESULT_OK){
             if(data!!.extras!=null){
                 var currentPeers = data.extras!!.getStringArrayList(PEER_LIST)
                 if(currentPeers==null || currentPeers.size==0){
-                    val text = "No peers selected!"
-                    val duration = Toast.LENGTH_SHORT
-                    val toast = Toast.makeText(applicationContext, text, duration)
-                    toast.setGravity(Gravity.CENTER, 0, 0)
-                    toast.show()
+                    showNoPeersSelected()
                 } else {
-                    val adapter = ArrayAdapter(this, R.layout.peers_list_item, currentPeers)
+                    this.currentPeers = deserializeStringList2PeerInfoList(currentPeers)
+                    val adapter = PeerInfoListAdapter(this, this.currentPeers)
                     val listView = findViewById<ListView>(R.id.peers)
                     listView.adapter = adapter
-                    this.currentPeers = currentPeers
+
                     //save to shared preferences
                     val preferences =
                         PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-                    preferences.edit().putStringSet(CURRENT_PEERS, HashSet(this.currentPeers)).apply()
+                    preferences.edit().putStringSet(CURRENT_PEERS, HashSet(currentPeers)).apply()
                     if(isStarted){
                         //apply peer changes
                         stopVpn()
@@ -177,22 +194,12 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    fun deserializeStringList2PeerInfoList(list: ArrayList<String>): ArrayList<PeerInfo> {
-        var gson = Gson()
-        var out = ArrayList<PeerInfo>()
-        for(s in list) {
-            out.add(gson.fromJson(s, PeerInfo::class.java))
-        }
-        return out
-    }
-
-    fun serializePeerInfoList2StringSet(list: ArrayList<PeerInfo>): Set<String> {
-        var gson = Gson()
-        var out = TreeSet<String>()
-        for(p in list) {
-            out.add(gson.toJson(p))
-        }
-        return out
+    fun showNoPeersSelected(){
+        val text = "No peers selected!"
+        val duration = Toast.LENGTH_SHORT
+        val toast = Toast.makeText(applicationContext, text, duration)
+        toast.setGravity(Gravity.CENTER, 0, 0)
+        toast.show()
     }
 
 }

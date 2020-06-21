@@ -17,7 +17,7 @@ import com.google.gson.reflect.TypeToken
 import com.hbb20.CCPCountry
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.Status
-import io.github.chronosx88.yggdrasil.models.config.PeerInfoListAdapter
+import io.github.chronosx88.yggdrasil.models.config.SelectPeerInfoListAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -136,24 +136,22 @@ class PeerListActivity : AppCompatActivity() {
             }
 
             if (extras != null) {
-                var cp = extras.getStringArrayList(MainActivity.PEER_LIST)!!
+                var cp = MainActivity.deserializeStringList2PeerInfoList(extras.getStringArrayList(MainActivity.PEER_LIST)!!)
                 var currentPeers = ArrayList(cp)
                 for(peerInfo in allPeers){
-                    if(currentPeers.contains(peerInfo.toString())){
-                        currentPeers.remove(peerInfo.toString())
+                    if(currentPeers.contains(peerInfo)){
+                        currentPeers.remove(peerInfo)
                     }
                 }
-                for(cp in currentPeers){
-                    var url = URI(cp)
-                    var peerInfo = PeerInfo(url.scheme, InetAddress.getByName(url.host), url.port, "RU")
-                    allPeers.add(0, peerInfo)
+                for(currentPeer in currentPeers){
+                    allPeers.add(0, currentPeer)
                 }
-                var adapter = PeerInfoListAdapter(instance, allOnlinePeers, cp)
+                var adapter = SelectPeerInfoListAdapter(instance, allOnlinePeers, cp)
                 withContext(Dispatchers.Main) {
                     peerList.adapter = adapter
                 }
             } else {
-                var adapter = PeerInfoListAdapter(instance, allOnlinePeers, ArrayList())
+                var adapter = SelectPeerInfoListAdapter(instance, allOnlinePeers, ArrayList())
                 withContext(Dispatchers.Main) {
                     peerList.adapter = adapter
                 }
@@ -170,10 +168,10 @@ class PeerListActivity : AppCompatActivity() {
             .actionView.findViewById<Button>(R.id.saveButton)
         saveButton.setOnClickListener {
             val result = Intent(this, MainActivity::class.java)
-            var adapter = findViewById<ListView>(R.id.peerList).adapter as PeerInfoListAdapter
+            var adapter = findViewById<ListView>(R.id.peerList).adapter as SelectPeerInfoListAdapter
             val selectedPeers = adapter.getSelectedPeers()
             if(selectedPeers.size>0) {
-                result.putExtra(MainActivity.PEER_LIST, adapter.getSelectedPeers())
+                result.putExtra(MainActivity.PEER_LIST, MainActivity.serializePeerInfoList2StringList(adapter.getSelectedPeers()))
                 setResult(Activity.RESULT_OK, result)
                 finish()
             } else {

@@ -7,6 +7,7 @@ import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import com.google.gson.Gson
 import dummy.ConduitEndpoint
+import io.github.chronosx88.yggdrasil.models.PeerInfo
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -27,6 +28,15 @@ class YggdrasilTunService : VpnService() {
 
     companion object {
         private const val TAG = "Yggdrasil-service"
+
+        @JvmStatic
+        fun convertPeerInfoList2PeerIdList(list: ArrayList<PeerInfo>): ArrayList<String> {
+            var out = ArrayList<String>()
+            for(p in list) {
+                out.add(p.toString())
+            }
+            return out
+        }
     }
     private var tunInterface: ParcelFileDescriptor? = null
     private lateinit var yggConduitEndpoint: ConduitEndpoint
@@ -42,7 +52,7 @@ class YggdrasilTunService : VpnService() {
             stopVpn(pi)
         }
         if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.START) {
-            val peers = intent.getStringArrayListExtra(MainActivity.PEERS)
+            val peers = MainActivity.deserializeStringList2PeerInfoList(intent.getStringArrayListExtra(MainActivity.PEERS))
             val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
             ygg = Yggdrasil()
             setupTunInterface(pi, peers)
@@ -51,7 +61,7 @@ class YggdrasilTunService : VpnService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun setupTunInterface(pi: PendingIntent, peers: ArrayList<String>) {
+    private fun setupTunInterface(pi: PendingIntent, peers: ArrayList<PeerInfo>) {
         pi.send(MainActivity.STATUS_START)
         val builder = Builder()
 
@@ -92,13 +102,13 @@ class YggdrasilTunService : VpnService() {
         pi.send(this, MainActivity.STATUS_FINISH, intent)
     }
 
-    private fun fixConfig(config: MutableMap<Any?, Any?>, peers: ArrayList<String>): MutableMap<Any?, Any?> {
+    private fun fixConfig(config: MutableMap<Any?, Any?>, peers: ArrayList<PeerInfo>): MutableMap<Any?, Any?> {
 
         val whiteList = arrayListOf<String>()
         whiteList.add("")
         val blackList = arrayListOf<String>()
         blackList.add("")
-        config["Peers"] = peers
+        config["Peers"] = convertPeerInfoList2PeerIdList(peers)
         config["Listen"] = ""
         config["AdminListen"] = "tcp://localhost:9001"
         config["IfName"] = "tun0"

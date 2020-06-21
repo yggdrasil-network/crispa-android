@@ -1,9 +1,24 @@
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:minHeight="25dp"
-        android:textSize="13sp"
-        android:textColor="@color/white"/>
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+    <ImageView
+            android:id="@+id/countryFlag"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="20dp"
+            android:scaleX="0.7"
+            android:scaleY="0.7"/>
+    <TextView
+            android:id="@+id/peerInfoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:layout_marginStart="10dp"
+            android:paddingEnd="20dp"
+            android:minHeight="22dp"
+            android:textSize="13sp"
+            android:textColor="@color/white"/>
+</LinearLayout>

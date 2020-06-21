@@ -13,19 +13,22 @@ import io.github.chronosx88.yggdrasil.models.PeerInfo
 import java.util.ArrayList
 
 
-class PeerInfoListAdapter(
+class SelectPeerInfoListAdapter(
     context: Context,
-    allPeers: List<PeerInfo>
+    allPeers: List<PeerInfo>,
+    currentPeers: ArrayList<PeerInfo>
 ) : ArrayAdapter<PeerInfo?> (context, 0, allPeers) {
 
     private val mContext: Context = context
     private var allPeers: List<PeerInfo> = allPeers
+    private var currentPeers: ArrayList<PeerInfo> = currentPeers
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var peerInfoHolder = PeerInfoHolder()
         var listItem: View? = convertView
         if (listItem == null) {
-            listItem = LayoutInflater.from(mContext).inflate(R.layout.peers_list_item, parent, false)
+            listItem = LayoutInflater.from(mContext).inflate(R.layout.peers_list_item_edit, parent, false)
+            peerInfoHolder.checkbox = listItem.findViewById(R.id.checkbox) as CheckBox
             peerInfoHolder.countryFlag = listItem.findViewById(R.id.countryFlag) as ImageView
             peerInfoHolder.peerInfoText = listItem.findViewById(R.id.peerInfoText) as TextView
             listItem.tag = peerInfoHolder
@@ -36,10 +39,27 @@ class PeerInfoListAdapter(
         peerInfoHolder.countryFlag.setImageResource(currentPeer.getCountry(mContext)!!.flagID)
         val peerId = currentPeer.toString()
         peerInfoHolder.peerInfoText.text = peerId
+        peerInfoHolder.checkbox.setOnCheckedChangeListener { _, isChecked ->
+            if(isChecked){
+                if(!currentPeers.contains(currentPeer)){
+                    currentPeers.add(currentPeer)
+                }
+            } else {
+                if(currentPeers.contains(currentPeer)){
+                    currentPeers.remove(currentPeer)
+                }
+            }
+        }
+        peerInfoHolder.checkbox.isChecked = this.currentPeers.contains(currentPeer)
         return listItem!!
     }
 
+    fun getSelectedPeers(): ArrayList<PeerInfo> {
+        return currentPeers
+    }
+
     class PeerInfoHolder {
+        lateinit var checkbox: CheckBox
         lateinit var countryFlag: ImageView
         lateinit var peerInfoText: TextView
     }
