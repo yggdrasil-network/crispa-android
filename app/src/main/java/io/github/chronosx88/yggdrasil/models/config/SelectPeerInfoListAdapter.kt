@@ -41,11 +41,11 @@ class SelectPeerInfoListAdapter(
         peerInfoHolder.countryFlag.setImageResource(currentPeer.getCountry(mContext)!!.flagID)
         val peerId = currentPeer.toString()
         if(currentPeer.ping == Int.MAX_VALUE){
-            peerInfoHolder.peerInfoText.text = "$peerId"
+            peerInfoHolder.peerInfoText.text = peerId
             peerInfoHolder.ping.text=""
             peerInfoHolder.peerInfoText.setTextColor(Color.GRAY)
         } else {
-            peerInfoHolder.peerInfoText.text = "$peerId" //peerId + " " + currentPeer.ping + " ms"
+            peerInfoHolder.peerInfoText.text = peerId
             peerInfoHolder.ping.text = currentPeer.ping.toString() + " ms"
             peerInfoHolder.peerInfoText.setTextColor(Color.WHITE)
         }
