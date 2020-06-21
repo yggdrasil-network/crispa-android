@@ -1,6 +1,7 @@
 package io.github.chronosx88.yggdrasil.models.config
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,6 +32,7 @@ class SelectPeerInfoListAdapter(
             peerInfoHolder.checkbox = listItem.findViewById(R.id.checkbox) as CheckBox
             peerInfoHolder.countryFlag = listItem.findViewById(R.id.countryFlag) as ImageView
             peerInfoHolder.peerInfoText = listItem.findViewById(R.id.peerInfoText) as TextView
+            peerInfoHolder.ping = listItem.findViewById(R.id.ping) as TextView
             listItem.tag = peerInfoHolder
         } else {
             peerInfoHolder = listItem.tag as PeerInfoHolder
@@ -38,7 +40,15 @@ class SelectPeerInfoListAdapter(
         val currentPeer = allPeers[position]
         peerInfoHolder.countryFlag.setImageResource(currentPeer.getCountry(mContext)!!.flagID)
         val peerId = currentPeer.toString()
-        peerInfoHolder.peerInfoText.text = peerId
+        if(currentPeer.ping == Int.MAX_VALUE){
+            peerInfoHolder.peerInfoText.text = "$peerId"
+            peerInfoHolder.ping.text=""
+            peerInfoHolder.peerInfoText.setTextColor(Color.GRAY)
+        } else {
+            peerInfoHolder.peerInfoText.text = "$peerId" //peerId + " " + currentPeer.ping + " ms"
+            peerInfoHolder.ping.text = currentPeer.ping.toString() + " ms"
+            peerInfoHolder.peerInfoText.setTextColor(Color.WHITE)
+        }
         peerInfoHolder.checkbox.setOnCheckedChangeListener { _, isChecked ->
             if(isChecked){
                 if(!currentPeers.contains(currentPeer)){
@@ -62,6 +72,7 @@ class SelectPeerInfoListAdapter(
         lateinit var checkbox: CheckBox
         lateinit var countryFlag: ImageView
         lateinit var peerInfoText: TextView
+        lateinit var ping: TextView
     }
 
 }

@@ -17,7 +17,7 @@ class PeerInfo {
     var address: InetAddress
     var port = 0
     var countryCode: String
-    var ping: Float = Float.MAX_VALUE
+    var ping: Int = Int.MAX_VALUE
 
     override fun toString(): String {
         var a = address.toString();

@@ -24,10 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.Type
-import java.net.Inet4Address
-import java.net.InetAddress
-import java.net.URI
-import java.net.URL
+import java.net.*
 import java.nio.charset.Charset
 
 
@@ -98,6 +95,17 @@ class PeerListActivity : AppCompatActivity() {
         }
     }
 
+    fun ping(address: InetAddress, port:Int): Int {
+        val start = System.currentTimeMillis()
+        try {
+            val socket = Socket()
+            socket.connect(InetSocketAddress(address, port), 5000)
+            socket.close()
+        } catch (e: Exception) {
+            return Int.MAX_VALUE
+        }
+        return (System.currentTimeMillis() - start).toInt()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,9 +130,12 @@ class PeerListActivity : AppCompatActivity() {
                 for ((peer, status) in peers) {
                     if(status.up){
                         for (ccp in countries){
-                            if(ccp.name.toLowerCase().contains(country.replace(".md",""))){
+                            if(ccp.name.toLowerCase().contains(country.replace(".md","").replace("-", " "))){
                                 var url = URI(peer)
-                                var peerInfo = PeerInfo(url.scheme, InetAddress.getByName(url.host), url.port, ccp.nameCode)
+                                var address = InetAddress.getByName(url.host)
+                                var ping = ping(address, url.port)
+                                var peerInfo = PeerInfo(url.scheme, address, url.port, ccp.nameCode)
+                                peerInfo.ping = ping
                                 allOnlinePeers.add(peerInfo)
                             }
                         }
@@ -132,7 +143,7 @@ class PeerListActivity : AppCompatActivity() {
                 }
             }
             if(allOnlinePeers.size>0){
-                allPeers = allOnlinePeers
+                allPeers = ArrayList(allOnlinePeers.sortedWith(compareBy { it.ping }))
             }
 
             if (extras != null) {
@@ -146,12 +157,12 @@ class PeerListActivity : AppCompatActivity() {
                 for(currentPeer in currentPeers){
                     allPeers.add(0, currentPeer)
                 }
-                var adapter = SelectPeerInfoListAdapter(instance, allOnlinePeers, cp)
+                var adapter = SelectPeerInfoListAdapter(instance, allPeers, cp)
                 withContext(Dispatchers.Main) {
                     peerList.adapter = adapter
                 }
             } else {
-                var adapter = SelectPeerInfoListAdapter(instance, allOnlinePeers, ArrayList())
+                var adapter = SelectPeerInfoListAdapter(instance, allPeers, ArrayList())
                 withContext(Dispatchers.Main) {
                     peerList.adapter = adapter
                 }
