@@ -9,7 +9,7 @@
             android:layout_height="wrap_content"
             android:scaleX="0.4"
             android:scaleY="0.4"
-            android:background="@color/white"
+            android:background="@drawable/checkbox_rounded_corner"
             android:layout_marginStart="5dp">
         <CheckBox
                 android:id="@+id/checkbox"
@@ -19,7 +19,8 @@
                 android:scaleX="3"
                 android:scaleY="3"
                 android:layout_margin="10dp"
-                android:background="@android:color/transparent"/>
+                android:background="@android:color/transparent"
+                android:checked="false"/>
     </FrameLayout>
     <ImageView
             android:id="@+id/countryFlag"

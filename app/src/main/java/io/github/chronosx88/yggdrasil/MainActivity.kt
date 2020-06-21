@@ -12,6 +12,11 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import com.google.gson.Gson
+import io.github.chronosx88.yggdrasil.models.PeerInfo
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 
 class MainActivity : AppCompatActivity() {
@@ -122,10 +127,11 @@ class MainActivity : AppCompatActivity() {
                         val i = baseContext.packageManager
                             .getLaunchIntentForPackage(baseContext.packageName)
                         i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        i!!.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         i.putExtra(START_VPN, true)
-                        startActivity(i)
                         finish()
+                        startActivity(i)
+
                     }
                 }
             }
@@ -161,7 +167,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             switchOn.isChecked = false
         }
-        switchOn.setOnCheckedChangeListener { buttonView, isChecked ->
+        switchOn.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 startVpn()
             } else {
@@ -169,6 +175,24 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return true
+    }
+
+    fun deserializeStringList2PeerInfoList(list: ArrayList<String>): ArrayList<PeerInfo> {
+        var gson = Gson()
+        var out = ArrayList<PeerInfo>()
+        for(s in list) {
+            out.add(gson.fromJson(s, PeerInfo::class.java))
+        }
+        return out
+    }
+
+    fun serializePeerInfoList2StringSet(list: ArrayList<PeerInfo>): Set<String> {
+        var gson = Gson()
+        var out = TreeSet<String>()
+        for(p in list) {
+            out.add(gson.toJson(p))
+        }
+        return out
     }
 
 }

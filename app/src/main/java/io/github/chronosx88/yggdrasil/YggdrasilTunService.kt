@@ -146,8 +146,8 @@ class YggdrasilTunService : VpnService() {
 
     private fun stopVpn(pi: PendingIntent) {
         isClosed = true;
-        readCoroutine!!.cancel()
-        writeCoroutine!!.cancel()
+        readCoroutine.cancel()
+        writeCoroutine.cancel()
         tunInputStream!!.close()
         tunOutputStream!!.close()
         tunInterface!!.close()
