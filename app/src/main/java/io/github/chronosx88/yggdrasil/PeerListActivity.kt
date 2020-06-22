@@ -32,57 +32,6 @@ class PeerListActivity : AppCompatActivity() {
 
     companion object {
         const val PEER_LIST_URL = "https://publicpeers.neilalexander.dev/publicnodes.json"
-
-        var allPeers = arrayListOf(
-            PeerInfo(
-                "tcp",
-                Inet4Address.getByName("194.177.21.156"),
-                5066,
-                "RU"
-            ),
-            PeerInfo(
-                "tcp",
-                Inet4Address.getByName("46.151.26.194"),
-                60575,
-                "RU"
-            ),
-            PeerInfo(
-                "tcp",
-                Inet4Address.getByName("188.226.125.64"),
-                54321,
-                "RU"
-            ),
-            PeerInfo(
-                "tcp",
-                Inet4Address.getByName("88.201.129.205"),
-                8777,
-                "RU"
-            ),
-            PeerInfo(
-                "tcp",
-                Inet4Address.getByName("45.11.19.26"),
-                5001,
-                "DE"
-            ),
-            PeerInfo(
-                "tcp",
-                Inet4Address.getByName("82.165.69.111"),
-                61216,
-                "DE"
-            ),
-            PeerInfo(
-                "tcp",
-                Inet4Address.getByName("104.248.15.125"),
-                31337,
-                "US"
-            ),
-            PeerInfo(
-                "tcp",
-                Inet4Address.getByName("108.175.10.127"),
-                61216,
-                "US"
-            )
-        )
     }
 
     fun downloadJson(link: String): String {
@@ -118,7 +67,10 @@ class PeerListActivity : AppCompatActivity() {
         }
         var extras = intent.extras
         var peerList = findViewById<ListView>(R.id.peerList)
-        var instance = this
+        var allPeers = arrayListOf<PeerInfo>()
+        var adapter = SelectPeerInfoListAdapter(this, allPeers, mutableSetOf())
+        peerList.adapter = adapter
+
         GlobalScope.launch {
             try {
                 var json = downloadJson(PEER_LIST_URL)
@@ -126,7 +78,6 @@ class PeerListActivity : AppCompatActivity() {
                 val mapType: Type = object :
                     TypeToken<Map<String?, Map<String, Status>>>() {}.type
                 val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
-                val allOnlinePeers = arrayListOf<PeerInfo>()
                 for ((country, peers) in peersMap.entries) {
                     println("$country:")
                     for ((peer, status) in peers) {
@@ -142,7 +93,12 @@ class PeerListActivity : AppCompatActivity() {
                                         var peerInfo =
                                             PeerInfo(url.scheme, address, url.port, ccp.nameCode)
                                         peerInfo.ping = ping
-                                        allOnlinePeers.add(peerInfo)
+                                        adapter.addItem(peerInfo)
+                                        if(peerList.adapter.count % 5 == 0) {
+                                            withContext(Dispatchers.Main) {
+                                                adapter.sort()
+                                            }
+                                        }
                                     } catch (e: Throwable){
                                         e.printStackTrace()
                                     }
@@ -151,31 +107,20 @@ class PeerListActivity : AppCompatActivity() {
                         }
                     }
                 }
-                if (allOnlinePeers.size > 0) {
-                    allPeers = ArrayList(allOnlinePeers.sortedWith(compareBy { it.ping }))
-                }
-
                 if (extras != null) {
                     var cp = MainActivity.deserializeStringList2PeerInfoSet(
                         extras.getStringArrayList(MainActivity.PEER_LIST)!!
                     )
                     var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
-                    allPeers.removeAll(currentPeers)
-                    allPeers.addAll(0, currentPeers)
-                    var adapter = SelectPeerInfoListAdapter(instance, allPeers, cp)
                     withContext(Dispatchers.Main) {
-                        peerList.adapter = adapter
-                    }
-                } else {
-                    var adapter = SelectPeerInfoListAdapter(instance, allPeers, mutableSetOf())
-                    withContext(Dispatchers.Main) {
-                        peerList.adapter = adapter
+                        adapter.addAll(0, currentPeers)
                     }
                 }
             } catch (e: Throwable){
                 e.printStackTrace()
             }
         }
+        (peerList.adapter as SelectPeerInfoListAdapter).sort()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

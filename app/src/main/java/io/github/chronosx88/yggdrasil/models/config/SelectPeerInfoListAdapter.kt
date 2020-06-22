@@ -19,8 +19,16 @@ class SelectPeerInfoListAdapter(
 ) : ArrayAdapter<PeerInfo?> (context, 0, allPeers) {
 
     private val mContext: Context = context
-    private var allPeers: List<PeerInfo> = allPeers
+    private var allPeers: MutableList<PeerInfo> = allPeers as MutableList<PeerInfo>
     private var currentPeers: MutableSet<PeerInfo> = currentPeers
+
+    override fun getItem(position: Int): PeerInfo? {
+        return allPeers.get(position)
+    }
+
+    override fun getCount(): Int {
+        return allPeers.size
+    }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var peerInfoHolder = PeerInfoHolder()
@@ -64,6 +72,22 @@ class SelectPeerInfoListAdapter(
 
     fun getSelectedPeers(): Set<PeerInfo> {
         return currentPeers
+    }
+
+    fun addItem(peerInfo: PeerInfo){
+        allPeers.add(peerInfo)
+    }
+
+    fun addAll(index: Int, peerInfo: ArrayList<PeerInfo>){
+        currentPeers.addAll(peerInfo)
+        allPeers.removeAll(peerInfo)
+        allPeers.addAll(index, peerInfo)
+        this.notifyDataSetChanged()
+    }
+
+    fun sort(){
+        allPeers = ArrayList(allPeers.sortedWith(compareBy { it.ping }))
+        this.notifyDataSetChanged()
     }
 
     class PeerInfoHolder {
