@@ -11,18 +11,16 @@ import android.widget.ImageView
 import android.widget.TextView
 import io.github.chronosx88.yggdrasil.R
 import io.github.chronosx88.yggdrasil.models.PeerInfo
-import java.util.ArrayList
-
 
 class SelectPeerInfoListAdapter(
     context: Context,
     allPeers: List<PeerInfo>,
-    currentPeers: ArrayList<PeerInfo>
+    currentPeers: MutableSet<PeerInfo>
 ) : ArrayAdapter<PeerInfo?> (context, 0, allPeers) {
 
     private val mContext: Context = context
     private var allPeers: List<PeerInfo> = allPeers
-    private var currentPeers: ArrayList<PeerInfo> = currentPeers
+    private var currentPeers: MutableSet<PeerInfo> = currentPeers
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var peerInfoHolder = PeerInfoHolder()
@@ -64,7 +62,7 @@ class SelectPeerInfoListAdapter(
         return listItem!!
     }
 
-    fun getSelectedPeers(): ArrayList<PeerInfo> {
+    fun getSelectedPeers(): Set<PeerInfo> {
         return currentPeers
     }
 

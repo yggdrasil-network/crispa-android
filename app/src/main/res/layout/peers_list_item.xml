@@ -4,13 +4,18 @@
         android:layout_width="match_parent"
         android:orientation="horizontal"
         android:gravity="center_vertical">
-    <ImageView
-            android:id="@+id/countryFlag"
+    <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginStart="18dp"
-            android:scaleX="0.7"
-            android:scaleY="0.7"/>
+            android:layout_marginStart="20dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp">
+        <ImageView
+                android:id="@+id/countryFlag"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"/>
+    </FrameLayout>
     <TextView
             android:id="@+id/peerInfoText"
             android:layout_width="match_parent"

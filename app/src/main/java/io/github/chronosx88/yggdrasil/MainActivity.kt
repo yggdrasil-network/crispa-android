@@ -40,9 +40,9 @@ class MainActivity : AppCompatActivity() {
         private const val VPN_REQUEST_CODE = 0x0F
 
         @JvmStatic
-        fun deserializeStringList2PeerInfoList(list: ArrayList<String>): ArrayList<PeerInfo> {
+        fun deserializeStringList2PeerInfoSet(list: List<String>): MutableSet<PeerInfo> {
             var gson = Gson()
-            var out = ArrayList<PeerInfo>()
+            var out = mutableSetOf<PeerInfo>()
             for(s in list) {
                 out.add(gson.fromJson(s, PeerInfo::class.java))
             }
@@ -50,7 +50,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JvmStatic
-        fun serializePeerInfoList2StringList(list: ArrayList<PeerInfo>): ArrayList<String> {
+        fun deserializeStringSet2PeerInfoSet(list: Set<String>): MutableSet<PeerInfo> {
+            var gson = Gson()
+            var out = mutableSetOf<PeerInfo>()
+            for(s in list) {
+                out.add(gson.fromJson(s, PeerInfo::class.java))
+            }
+            return out
+        }
+
+        @JvmStatic
+        fun serializePeerInfoSet2StringList(list: Set<PeerInfo>): ArrayList<String> {
             var gson = Gson()
             var out = ArrayList<String>()
             for(p in list) {
@@ -61,7 +71,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var startVpnFlag = false
-    private var currentPeers = arrayListOf<PeerInfo>()
+    private var currentPeers = setOf<PeerInfo>()
     private var isStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,14 +81,14 @@ class MainActivity : AppCompatActivity() {
         //save to shared preferences
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-        currentPeers = deserializeStringList2PeerInfoList(ArrayList(preferences.getStringSet(CURRENT_PEERS, HashSet())!!))
+        currentPeers = deserializeStringSet2PeerInfoSet(preferences.getStringSet(CURRENT_PEERS, HashSet())!!)
 
-        val adapter = PeerInfoListAdapter(this, currentPeers)
+        val adapter = PeerInfoListAdapter(this, ArrayList(currentPeers))
         listView.adapter = adapter
         val editPeersButton = findViewById<Button>(R.id.edit)
         editPeersButton.setOnClickListener {
             val intent = Intent(this, PeerListActivity::class.java)
-            intent.putStringArrayListExtra(PEER_LIST, serializePeerInfoList2StringList(currentPeers))
+            intent.putStringArrayListExtra(PEER_LIST, serializePeerInfoSet2StringList(currentPeers))
             startActivityForResult(intent, PEER_LIST_CODE)
         }
         if(intent.extras!==null) {
@@ -120,7 +130,7 @@ class MainActivity : AppCompatActivity() {
             val pi = createPendingResult(TASK_CODE, intent, 0)
             intent.putExtra(PARAM_PINTENT, pi)
             intent.putExtra(COMMAND, START)
-            intent.putStringArrayListExtra(PEERS, serializePeerInfoList2StringList(currentPeers))
+            intent.putStringArrayListExtra(PEERS, serializePeerInfoSet2StringList(currentPeers))
             startService(intent)
         }
         if (requestCode == PEER_LIST_CODE && resultCode== Activity.RESULT_OK){
@@ -129,8 +139,8 @@ class MainActivity : AppCompatActivity() {
                 if(currentPeers==null || currentPeers.size==0){
                     showNoPeersSelected()
                 } else {
-                    this.currentPeers = deserializeStringList2PeerInfoList(currentPeers)
-                    val adapter = PeerInfoListAdapter(this, this.currentPeers)
+                    this.currentPeers = deserializeStringList2PeerInfoSet(currentPeers)
+                    val adapter = PeerInfoListAdapter(this, ArrayList(this.currentPeers))
                     val listView = findViewById<ListView>(R.id.peers)
                     listView.adapter = adapter
 

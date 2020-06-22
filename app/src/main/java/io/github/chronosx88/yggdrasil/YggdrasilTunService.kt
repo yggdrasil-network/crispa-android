@@ -30,8 +30,8 @@ class YggdrasilTunService : VpnService() {
         private const val TAG = "Yggdrasil-service"
 
         @JvmStatic
-        fun convertPeerInfoList2PeerIdList(list: ArrayList<PeerInfo>): ArrayList<String> {
-            var out = ArrayList<String>()
+        fun convertPeerInfoSet2PeerIdSet(list: Set<PeerInfo>): Set<String> {
+            var out = mutableSetOf<String>()
             for(p in list) {
                 out.add(p.toString())
             }
@@ -52,7 +52,7 @@ class YggdrasilTunService : VpnService() {
             stopVpn(pi)
         }
         if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.START) {
-            val peers = MainActivity.deserializeStringList2PeerInfoList(intent.getStringArrayListExtra(MainActivity.PEERS))
+            val peers = MainActivity.deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
             val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
             ygg = Yggdrasil()
             setupTunInterface(pi, peers)
@@ -61,7 +61,7 @@ class YggdrasilTunService : VpnService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun setupTunInterface(pi: PendingIntent, peers: ArrayList<PeerInfo>) {
+    private fun setupTunInterface(pi: PendingIntent, peers: Set<PeerInfo>) {
         pi.send(MainActivity.STATUS_START)
         val builder = Builder()
 
@@ -102,13 +102,13 @@ class YggdrasilTunService : VpnService() {
         pi.send(this, MainActivity.STATUS_FINISH, intent)
     }
 
-    private fun fixConfig(config: MutableMap<Any?, Any?>, peers: ArrayList<PeerInfo>): MutableMap<Any?, Any?> {
+    private fun fixConfig(config: MutableMap<Any?, Any?>, peers: Set<PeerInfo>): MutableMap<Any?, Any?> {
 
         val whiteList = arrayListOf<String>()
         whiteList.add("")
         val blackList = arrayListOf<String>()
         blackList.add("")
-        config["Peers"] = convertPeerInfoList2PeerIdList(peers)
+        config["Peers"] = convertPeerInfoSet2PeerIdSet(peers)
         config["Listen"] = ""
         config["AdminListen"] = "tcp://localhost:9001"
         config["IfName"] = "tun0"

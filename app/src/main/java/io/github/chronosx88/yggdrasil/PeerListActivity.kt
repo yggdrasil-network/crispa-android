@@ -156,24 +156,18 @@ class PeerListActivity : AppCompatActivity() {
                 }
 
                 if (extras != null) {
-                    var cp = MainActivity.deserializeStringList2PeerInfoList(
+                    var cp = MainActivity.deserializeStringList2PeerInfoSet(
                         extras.getStringArrayList(MainActivity.PEER_LIST)!!
                     )
-                    var currentPeers = ArrayList(cp)
-                    for (peerInfo in allPeers) {
-                        if (currentPeers.contains(peerInfo)) {
-                            currentPeers.remove(peerInfo)
-                        }
-                    }
-                    for (currentPeer in currentPeers) {
-                        allPeers.add(0, currentPeer)
-                    }
+                    var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
+                    allPeers.removeAll(currentPeers)
+                    allPeers.addAll(0, currentPeers)
                     var adapter = SelectPeerInfoListAdapter(instance, allPeers, cp)
                     withContext(Dispatchers.Main) {
                         peerList.adapter = adapter
                     }
                 } else {
-                    var adapter = SelectPeerInfoListAdapter(instance, allPeers, ArrayList())
+                    var adapter = SelectPeerInfoListAdapter(instance, allPeers, mutableSetOf())
                     withContext(Dispatchers.Main) {
                         peerList.adapter = adapter
                     }
@@ -196,7 +190,7 @@ class PeerListActivity : AppCompatActivity() {
             var adapter = findViewById<ListView>(R.id.peerList).adapter as SelectPeerInfoListAdapter
             val selectedPeers = adapter.getSelectedPeers()
             if(selectedPeers.size>0) {
-                result.putExtra(MainActivity.PEER_LIST, MainActivity.serializePeerInfoList2StringList(adapter.getSelectedPeers()))
+                result.putExtra(MainActivity.PEER_LIST, MainActivity.serializePeerInfoSet2StringList(adapter.getSelectedPeers()))
                 setResult(Activity.RESULT_OK, result)
                 finish()
             } else {
