@@ -120,7 +120,6 @@ class PeerListActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }
-        (peerList.adapter as SelectPeerInfoListAdapter).sort()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
