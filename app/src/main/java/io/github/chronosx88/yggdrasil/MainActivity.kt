@@ -15,7 +15,6 @@ import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.config.PeerInfoListAdapter
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
@@ -87,6 +86,10 @@ class MainActivity : AppCompatActivity() {
         listView.adapter = adapter
         val editPeersButton = findViewById<Button>(R.id.edit)
         editPeersButton.setOnClickListener {
+            if(isStarted){
+                showToast("Service is running. Please stop service before edit Peers list")
+                return@setOnClickListener
+            }
             val intent = Intent(this, PeerListActivity::class.java)
             intent.putStringArrayListExtra(PEER_LIST, serializePeerInfoSet2StringList(currentPeers))
             startActivityForResult(intent, PEER_LIST_CODE)
@@ -122,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_OK){
             if(currentPeers.size==0){
-                showNoPeersSelected()
+                showToast("No peers selected!")
                 return
             }
             val intent = Intent(this, YggdrasilTunService::class.java)
@@ -137,7 +140,7 @@ class MainActivity : AppCompatActivity() {
             if(data!!.extras!=null){
                 var currentPeers = data.extras!!.getStringArrayList(PEER_LIST)
                 if(currentPeers==null || currentPeers.size==0){
-                    showNoPeersSelected()
+                    showToast("No peers selected!")
                 } else {
                     this.currentPeers = deserializeStringList2PeerInfoSet(currentPeers)
                     val adapter = PeerInfoListAdapter(this, ArrayList(this.currentPeers))
@@ -204,8 +207,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    fun showNoPeersSelected(){
-        val text = "No peers selected!"
+    fun showToast(text: String){
         val duration = Toast.LENGTH_SHORT
         val toast = Toast.makeText(applicationContext, text, duration)
         toast.setGravity(Gravity.CENTER, 0, 0)
