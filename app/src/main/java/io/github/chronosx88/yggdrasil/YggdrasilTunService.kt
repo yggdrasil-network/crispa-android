@@ -150,7 +150,13 @@ class YggdrasilTunService : VpnService() {
     private fun writePacketsToTun() {
         if(tunOutputStream != null) {
             val buffer = yggConduitEndpoint.recv()
-            tunOutputStream!!.write(buffer)
+            if(buffer!=null) {
+                try {
+                    tunOutputStream!!.write(buffer)
+                }catch(e: IOException){
+                    e.printStackTrace()
+                }
+            }
         }
     }
 
@@ -162,11 +168,10 @@ class YggdrasilTunService : VpnService() {
         tunOutputStream!!.close()
         tunInterface!!.close()
         tunInterface = null
-        //this hack due to https://github.com/yggdrasil-network/yggdrasil-go/issues/714 bug
-        ygg.startAutoconfigure()
         ygg.stop()
         val intent: Intent = Intent()
         pi.send(this, MainActivity.STATUS_STOP, intent)
+        stopSelf()
     }
 
     override fun onDestroy() {

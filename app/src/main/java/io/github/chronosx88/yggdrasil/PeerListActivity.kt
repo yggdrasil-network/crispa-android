@@ -73,13 +73,19 @@ class PeerListActivity : AppCompatActivity() {
 
         GlobalScope.launch {
             try {
+                var cp = MainActivity.deserializeStringList2PeerInfoSet(
+                    extras!!.getStringArrayList(MainActivity.PEER_LIST)!!
+                )
+                for(pi in cp){
+                    var ping = ping(pi.address, pi.port)
+                    pi.ping = ping
+                }
                 var json = downloadJson(PEER_LIST_URL)
                 var countries = CCPCountry.getLibraryMasterCountriesEnglish()
                 val mapType: Type = object :
                     TypeToken<Map<String?, Map<String, Status>>>() {}.type
                 val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
                 for ((country, peers) in peersMap.entries) {
-                    println("$country:")
                     for ((peer, status) in peers) {
                         if (status.up) {
                             for (ccp in countries) {
@@ -89,9 +95,12 @@ class PeerListActivity : AppCompatActivity() {
                                     var url = URI(peer)
                                     try {
                                         var address = InetAddress.getByName(url.host)
-                                        var ping = ping(address, url.port)
                                         var peerInfo =
                                             PeerInfo(url.scheme, address, url.port, ccp.nameCode)
+                                        if(cp.contains(peerInfo)){
+                                            continue
+                                        }
+                                        var ping = ping(address, url.port)
                                         peerInfo.ping = ping
                                         adapter.addItem(peerInfo)
                                         if(peerList.adapter.count % 5 == 0) {
@@ -107,14 +116,9 @@ class PeerListActivity : AppCompatActivity() {
                         }
                     }
                 }
-                if (extras != null) {
-                    var cp = MainActivity.deserializeStringList2PeerInfoSet(
-                        extras.getStringArrayList(MainActivity.PEER_LIST)!!
-                    )
-                    var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
-                    withContext(Dispatchers.Main) {
-                        adapter.addAll(0, currentPeers)
-                    }
+                var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
+                withContext(Dispatchers.Main) {
+                    adapter.addAll(0, currentPeers)
                 }
             } catch (e: Throwable){
                 e.printStackTrace()
@@ -134,7 +138,7 @@ class PeerListActivity : AppCompatActivity() {
             var adapter = findViewById<ListView>(R.id.peerList).adapter as SelectPeerInfoListAdapter
             val selectedPeers = adapter.getSelectedPeers()
             if(selectedPeers.size>0) {
-                result.putExtra(MainActivity.PEER_LIST, MainActivity.serializePeerInfoSet2StringList(adapter.getSelectedPeers()))
+                result.putExtra(MainActivity.PEER_LIST, MainActivity.serializePeerInfoSet2StringList(selectedPeers))
                 setResult(Activity.RESULT_OK, result)
                 finish()
             } else {

@@ -10,25 +10,27 @@ class PeerInfo {
     constructor(schema: String, address: InetAddress, port: Int, countryCode: String){
         this.schema = schema
         this.address = address
+        var a = address.toString();
+        if(a.lastIndexOf('/')>0){
+            this.hostName = a.split("/")[0]
+        } else {
+            this.hostName = a.substring(1)
+        }
         this.port = port
         this.countryCode = countryCode
     }
     var schema: String
     var address: InetAddress
+    var hostName: String
     var port = 0
     var countryCode: String
     var ping: Int = Int.MAX_VALUE
 
     override fun toString(): String {
-        var a = address.toString();
-        if(a.indexOf("/")>0){
-            return this.schema+"://"+a.split("/")[0]+":"+port
+        if(this.hostName.contains(":")) {
+            return this.schema + "://[" + this.hostName + "]:" + port
         } else {
-            if(a.contains(":")) {
-                return this.schema + "://[" + a.substring(1) + "]:" + port
-            } else {
-                return this.schema + ":/" + a + ":" + port
-            }
+            return this.schema + "://" + this.hostName + ":" + port
         }
     }
 

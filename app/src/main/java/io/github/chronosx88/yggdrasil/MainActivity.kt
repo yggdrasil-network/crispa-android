@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         const val PEERS: String = "PEERS"
         const val PEER_LIST_CODE = 1000
         const val PEER_LIST = "PEERS_LIST"
-        const val CURRENT_PEERS = "CURRENT_PEER_INFO"
+        const val CURRENT_PEERS = "CURRENT_PEERS_v1.1"
         const val START_VPN = "START_VPN"
         private const val TAG="Yggdrasil"
         private const val VPN_REQUEST_CODE = 0x0F
@@ -124,7 +124,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_OK){
-            if(currentPeers.size==0){
+            if(currentPeers.isEmpty()){
                 showToast("No peers selected!")
                 return
             }
@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity() {
                     showToast("No peers selected!")
                 } else {
                     this.currentPeers = deserializeStringList2PeerInfoSet(currentPeers)
-                    val adapter = PeerInfoListAdapter(this, ArrayList(this.currentPeers))
+                    val adapter = PeerInfoListAdapter(this, this.currentPeers.sortedWith(compareBy { it.ping }))
                     val listView = findViewById<ListView>(R.id.peers)
                     listView.adapter = adapter
 
@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity() {
                         PreferenceManager.getDefaultSharedPreferences(this.baseContext)
                     preferences.edit().putStringSet(CURRENT_PEERS, HashSet(currentPeers)).apply()
                     if(isStarted){
-                        //apply peer changes
+                        //TODO implement UpdateConfig methon in native interface and apply peer changes
                         stopVpn()
                         val i = baseContext.packageManager
                             .getLaunchIntentForPackage(baseContext.packageName)
@@ -161,7 +161,6 @@ class MainActivity : AppCompatActivity() {
                         i.putExtra(START_VPN, true)
                         finish()
                         startActivity(i)
-
                     }
                 }
             }
@@ -207,7 +206,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    fun showToast(text: String){
+    private fun showToast(text: String){
         val duration = Toast.LENGTH_SHORT
         val toast = Toast.makeText(applicationContext, text, duration)
         toast.setGravity(Gravity.CENTER, 0, 0)
