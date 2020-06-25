@@ -34,10 +34,10 @@ class SelectPeerInfoListAdapter(
         var peerInfoHolder = PeerInfoHolder()
         var listItem: View? = convertView
         if (listItem == null) {
-            listItem = LayoutInflater.from(mContext).inflate(R.layout.peers_list_item_edit, parent, false)
+            listItem = LayoutInflater.from(mContext).inflate(R.layout.host_list_item_edit, parent, false)
             peerInfoHolder.checkbox = listItem.findViewById(R.id.checkbox) as CheckBox
             peerInfoHolder.countryFlag = listItem.findViewById(R.id.countryFlag) as ImageView
-            peerInfoHolder.peerInfoText = listItem.findViewById(R.id.peerInfoText) as TextView
+            peerInfoHolder.peerInfoText = listItem.findViewById(R.id.hostInfoText) as TextView
             peerInfoHolder.ping = listItem.findViewById(R.id.ping) as TextView
             listItem.tag = peerInfoHolder
         } else {

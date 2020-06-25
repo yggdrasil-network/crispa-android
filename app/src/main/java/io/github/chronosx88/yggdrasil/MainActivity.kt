@@ -13,7 +13,9 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
+import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
+import io.github.chronosx88.yggdrasil.models.config.DNSInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.PeerInfoListAdapter
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
@@ -31,9 +33,13 @@ class MainActivity : AppCompatActivity() {
         const val STATUS_STOP = 9
         const val IPv6: String = "IPv6"
         const val PEERS: String = "PEERS"
+        const val DNS: String = "DNS"
         const val PEER_LIST_CODE = 1000
+        const val DNS_LIST_CODE = 2000
         const val PEER_LIST = "PEERS_LIST"
+        const val DNS_LIST = "DNS_LIST"
         const val CURRENT_PEERS = "CURRENT_PEERS_v1.1"
+        const val CURRENT_DNS = "CURRENT_DNS_v1.1"
         const val START_VPN = "START_VPN"
         private const val TAG="Yggdrasil"
         private const val VPN_REQUEST_CODE = 0x0F
@@ -49,11 +55,31 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JvmStatic
+        fun deserializeStringList2DNSInfoSet(list: List<String>): MutableSet<DNSInfo> {
+            var gson = Gson()
+            var out = mutableSetOf<DNSInfo>()
+            for(s in list) {
+                out.add(gson.fromJson(s, DNSInfo::class.java))
+            }
+            return out
+        }
+
+        @JvmStatic
         fun deserializeStringSet2PeerInfoSet(list: Set<String>): MutableSet<PeerInfo> {
             var gson = Gson()
             var out = mutableSetOf<PeerInfo>()
             for(s in list) {
                 out.add(gson.fromJson(s, PeerInfo::class.java))
+            }
+            return out
+        }
+
+        @JvmStatic
+        fun deserializeStringSet2DNSInfoSet(list: Set<String>): MutableSet<DNSInfo> {
+            var gson = Gson()
+            var out = mutableSetOf<DNSInfo>()
+            for(s in list) {
+                out.add(gson.fromJson(s, DNSInfo::class.java))
             }
             return out
         }
@@ -67,10 +93,21 @@ class MainActivity : AppCompatActivity() {
             }
             return out
         }
+
+        @JvmStatic
+        fun serializeDNSInfoSet2StringList(list: Set<DNSInfo>): ArrayList<String> {
+            var gson = Gson()
+            var out = ArrayList<String>()
+            for(p in list) {
+                out.add(gson.toJson(p))
+            }
+            return out
+        }
     }
 
     private var startVpnFlag = false
     private var currentPeers = setOf<PeerInfo>()
+    private var currentDNS = setOf<DNSInfo>()
     private var isStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,7 +119,7 @@ class MainActivity : AppCompatActivity() {
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
         currentPeers = deserializeStringSet2PeerInfoSet(preferences.getStringSet(CURRENT_PEERS, HashSet())!!)
 
-        val adapter = PeerInfoListAdapter(this, ArrayList(currentPeers))
+        val adapter = PeerInfoListAdapter(this, currentPeers.sortedWith(compareBy { it.ping }))
         listView.adapter = adapter
         val editPeersButton = findViewById<Button>(R.id.edit)
         editPeersButton.setOnClickListener {
@@ -90,9 +127,24 @@ class MainActivity : AppCompatActivity() {
                 showToast("Service is running. Please stop service before edit Peers list")
                 return@setOnClickListener
             }
-            val intent = Intent(this, PeerListActivity::class.java)
+            val intent = Intent(this@MainActivity, PeerListActivity::class.java)
             intent.putStringArrayListExtra(PEER_LIST, serializePeerInfoSet2StringList(currentPeers))
             startActivityForResult(intent, PEER_LIST_CODE)
+        }
+
+        val listViewDNS = findViewById<ListView>(R.id.dns)
+        currentDNS = deserializeStringSet2DNSInfoSet(preferences.getStringSet(CURRENT_DNS, HashSet())!!)
+        val adapterDns = DNSInfoListAdapter(this, currentDNS.sortedWith(compareBy { it.ping }))
+        listViewDNS.adapter = adapterDns
+        val editDnsButton = findViewById<Button>(R.id.editDNS)
+        editDnsButton.setOnClickListener {
+            if(!isStarted){
+                showToast("Service is not running. DNS ping will not be run")
+                return@setOnClickListener
+            }
+            val intent = Intent(this@MainActivity, DNSListActivity::class.java)
+            intent.putStringArrayListExtra(DNS_LIST, serializeDNSInfoSet2StringList(currentDNS))
+            startActivityForResult(intent, DNS_LIST_CODE)
         }
         if(intent.extras!==null) {
             startVpnFlag = intent.extras!!.getBoolean(START_VPN, false)
@@ -123,6 +175,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
         if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_OK){
             if(currentPeers.isEmpty()){
                 showToast("No peers selected!")
@@ -134,8 +187,10 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra(PARAM_PINTENT, pi)
             intent.putExtra(COMMAND, START)
             intent.putStringArrayListExtra(PEERS, serializePeerInfoSet2StringList(currentPeers))
+            intent.putStringArrayListExtra(DNS, serializeDNSInfoSet2StringList(currentDNS))
             startService(intent)
         }
+
         if (requestCode == PEER_LIST_CODE && resultCode== Activity.RESULT_OK){
             if(data!!.extras!=null){
                 var currentPeers = data.extras!!.getStringArrayList(PEER_LIST)
@@ -152,7 +207,7 @@ class MainActivity : AppCompatActivity() {
                         PreferenceManager.getDefaultSharedPreferences(this.baseContext)
                     preferences.edit().putStringSet(CURRENT_PEERS, HashSet(currentPeers)).apply()
                     if(isStarted){
-                        //TODO implement UpdateConfig methon in native interface and apply peer changes
+                        //TODO implement UpdateConfig method in native interface and apply peer changes
                         stopVpn()
                         val i = baseContext.packageManager
                             .getLaunchIntentForPackage(baseContext.packageName)
@@ -165,6 +220,36 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        if (requestCode == DNS_LIST_CODE && resultCode== Activity.RESULT_OK){
+            if(data!!.extras!=null){
+                var currentDNS = data.extras!!.getStringArrayList(DNS_LIST)
+                if(currentDNS==null || currentDNS.size==0){
+                    showToast("No DNS selected!")
+                } else {
+                    this.currentDNS = deserializeStringList2DNSInfoSet(currentDNS)
+                    val adapter = DNSInfoListAdapter(this, this.currentDNS.sortedWith(compareBy { it.ping }))
+                    val listView = findViewById<ListView>(R.id.dns)
+                    listView.adapter = adapter
+                    //save to shared preferences
+                    val preferences =
+                        PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+                    preferences.edit().putStringSet(CURRENT_DNS, HashSet(currentDNS)).apply()
+                    if(isStarted){
+                        //TODO implement UpdateConfig method in native interface and apply peer changes
+                        stopVpn()
+                        val i = baseContext.packageManager
+                            .getLaunchIntentForPackage(baseContext.packageName)
+                        i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        i.putExtra(START_VPN, true)
+                        finish()
+                        startActivity(i)
+                    }
+                }
+            }
+        }
+
         when (resultCode) {
             STATUS_START -> print("service started")
             STATUS_FINISH -> {

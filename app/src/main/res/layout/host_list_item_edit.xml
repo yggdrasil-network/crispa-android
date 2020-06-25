@@ -31,7 +31,7 @@
             android:layout_toEndOf="@+id/frame"
             android:layout_centerInParent="true"/>
     <TextView
-            android:id="@+id/peerInfoText"
+            android:id="@+id/hostInfoText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"

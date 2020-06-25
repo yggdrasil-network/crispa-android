@@ -7,6 +7,7 @@ import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import com.google.gson.Gson
 import dummy.ConduitEndpoint
+import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancel
@@ -53,18 +54,21 @@ class YggdrasilTunService : VpnService() {
         }
         if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.START) {
             val peers = MainActivity.deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
+            val dns = MainActivity.deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
             val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
             ygg = Yggdrasil()
-            setupTunInterface(pi, peers)
+            setupTunInterface(pi, peers, dns)
         }
 
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun setupTunInterface(pi: PendingIntent, peers: Set<PeerInfo>) {
+    private fun setupTunInterface(
+        pi: PendingIntent,
+        peers: Set<PeerInfo>,
+        dns: MutableSet<DNSInfo>
+    ) {
         pi.send(MainActivity.STATUS_START)
-        val builder = Builder()
-
         var configJson = Mobile.generateConfigJSON()
         val gson = Gson()
         var config = gson.fromJson(String(configJson), Map::class.java).toMutableMap()
@@ -74,12 +78,16 @@ class YggdrasilTunService : VpnService() {
         yggConduitEndpoint = ygg.startJSON(configJson)
         val address = ygg.addressString // hack for getting generic ipv6 string from NodeID
 
-        tunInterface = builder
+        var builder = Builder()
             .addAddress(address, 7)
             .allowFamily(OsConstants.AF_INET)
             .setMtu(MAX_PACKET_SIZE)
-            .establish()
-
+        if(dns.size>0){
+            for (d in dns){
+                builder.addDnsServer(d.address)
+            }
+        }
+        tunInterface = builder.establish()
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
         tunOutputStream = FileOutputStream(tunInterface!!.fileDescriptor)
         readCoroutine = GlobalScope.launch {

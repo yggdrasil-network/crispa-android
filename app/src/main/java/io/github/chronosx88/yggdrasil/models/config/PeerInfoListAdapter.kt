@@ -5,12 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
 import io.github.chronosx88.yggdrasil.R
 import io.github.chronosx88.yggdrasil.models.PeerInfo
-import java.util.ArrayList
 
 
 class PeerInfoListAdapter(
@@ -25,17 +23,16 @@ class PeerInfoListAdapter(
         var peerInfoHolder = PeerInfoHolder()
         var listItem: View? = convertView
         if (listItem == null) {
-            listItem = LayoutInflater.from(mContext).inflate(R.layout.peers_list_item, parent, false)
+            listItem = LayoutInflater.from(mContext).inflate(R.layout.host_list_item, parent, false)
             peerInfoHolder.countryFlag = listItem.findViewById(R.id.countryFlag) as ImageView
-            peerInfoHolder.peerInfoText = listItem.findViewById(R.id.peerInfoText) as TextView
+            peerInfoHolder.peerInfoText = listItem.findViewById(R.id.hostInfoText) as TextView
             listItem.tag = peerInfoHolder
         } else {
             peerInfoHolder = listItem.tag as PeerInfoHolder
         }
         val currentPeer = allPeers[position]
         peerInfoHolder.countryFlag.setImageResource(currentPeer.getCountry(mContext)!!.flagID)
-        val peerId = currentPeer.toString()
-        peerInfoHolder.peerInfoText.text = peerId
+        peerInfoHolder.peerInfoText.text = currentPeer.toString()
         return listItem!!
     }
 

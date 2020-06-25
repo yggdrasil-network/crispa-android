@@ -18,6 +18,7 @@ import com.hbb20.CCPCountry
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.Status
 import io.github.chronosx88.yggdrasil.models.config.SelectPeerInfoListAdapter
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.ping
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -44,19 +45,6 @@ class PeerListActivity : AppCompatActivity() {
         }
     }
 
-    fun ping(address: InetAddress, port:Int): Int {
-        val start = System.currentTimeMillis()
-        val socket = Socket()
-        try {
-            socket.connect(InetSocketAddress(address, port), 5000)
-            socket.close()
-        } catch (e: Exception) {
-            //silently pass
-            return Int.MAX_VALUE
-        }
-        return (System.currentTimeMillis() - start).toInt()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_peer_list)
@@ -67,8 +55,7 @@ class PeerListActivity : AppCompatActivity() {
         }
         var extras = intent.extras
         var peerList = findViewById<ListView>(R.id.peerList)
-        var allPeers = arrayListOf<PeerInfo>()
-        var adapter = SelectPeerInfoListAdapter(this, allPeers, mutableSetOf())
+        var adapter = SelectPeerInfoListAdapter(this, arrayListOf(), mutableSetOf())
         peerList.adapter = adapter
 
         GlobalScope.launch {
@@ -103,7 +90,7 @@ class PeerListActivity : AppCompatActivity() {
                                         var ping = ping(address, url.port)
                                         peerInfo.ping = ping
                                         adapter.addItem(peerInfo)
-                                        if(peerList.adapter.count % 5 == 0) {
+                                        if(adapter.count % 5 == 0) {
                                             withContext(Dispatchers.Main) {
                                                 adapter.sort()
                                             }
@@ -128,7 +115,7 @@ class PeerListActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.save_peers, menu)
+        menuInflater.inflate(R.menu.save, menu)
         val item = menu.findItem(R.id.saveItem) as MenuItem
         item.setActionView(R.layout.menu_save)
         val saveButton = item
