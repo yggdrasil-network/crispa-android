@@ -14,7 +14,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.config.SelectDNSInfoListAdapter
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.ping
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializeDNSInfoSet2StringList
 import kotlinx.coroutines.*
 import java.net.*
 import kotlin.concurrent.thread
@@ -54,7 +56,7 @@ class DNSListActivity : AppCompatActivity() {
         dnsList.adapter = adapter
         thread(start = true) {
             try {
-                var cd = MainActivity.deserializeStringList2DNSInfoSet(
+                var cd = deserializeStringList2DNSInfoSet(
                     extras!!.getStringArrayList(MainActivity.DNS_LIST)!!
                 )
                 for (d in cd) {
@@ -93,7 +95,7 @@ class DNSListActivity : AppCompatActivity() {
             var adapter = findViewById<ListView>(R.id.dnsList).adapter as SelectDNSInfoListAdapter
             val selectedDNS = adapter.getSelectedDNS()
             if(selectedDNS.isNotEmpty()) {
-                result.putExtra(MainActivity.DNS_LIST, MainActivity.serializeDNSInfoSet2StringList(selectedDNS))
+                result.putExtra(MainActivity.DNS_LIST, serializeDNSInfoSet2StringList(selectedDNS))
                 setResult(Activity.RESULT_OK, result)
                 finish()
             } else {

@@ -1,19 +1,17 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import android.util.Log
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import dummy.ConduitEndpoint
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
 import kotlinx.coroutines.*
 import mobile.Mobile
 import mobile.Yggdrasil
@@ -46,13 +44,6 @@ class YggdrasilTunService : VpnService() {
     private var tunOutputStream: OutputStream? = null
     private var scope: CoroutineScope? = null
 
-    override fun onCreate() {
-        super.onCreate()
-        LocalBroadcastManager
-            .getInstance(this)
-            .registerReceiver(ServiceEchoReceiver(), IntentFilter("ping"))
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.STOP) {
@@ -60,8 +51,8 @@ class YggdrasilTunService : VpnService() {
             stopVpn(pi)
         }
         if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.START) {
-            val peers = MainActivity.deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
-            val dns = MainActivity.deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
+            val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
+            val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
             val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
             ygg = Yggdrasil()
             setupTunInterface(pi, peers, dns)
@@ -193,13 +184,5 @@ class YggdrasilTunService : VpnService() {
     override fun onDestroy() {
         super.onDestroy()
         stopSelf()
-    }
-
-    private class ServiceEchoReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            LocalBroadcastManager
-                .getInstance(context!!)
-                .sendBroadcastSync(Intent("pong"))
-        }
     }
 }

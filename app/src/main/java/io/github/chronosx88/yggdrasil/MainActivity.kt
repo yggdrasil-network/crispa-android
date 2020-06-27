@@ -1,10 +1,9 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
-import android.content.BroadcastReceiver
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.VpnService
 import android.os.Bundle
 import android.util.Log
@@ -14,13 +13,17 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
-import com.google.gson.Gson
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.config.DNSInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.PeerInfoListAdapter
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringSet2DNSInfoSet
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringSet2PeerInfoSet
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializeDNSInfoSet2StringList
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializePeerInfoSet2StringList
 
 
 class MainActivity : AppCompatActivity() {
@@ -48,65 +51,6 @@ class MainActivity : AppCompatActivity() {
 
         @JvmStatic var isStarted = false
 
-        @JvmStatic
-        fun deserializeStringList2PeerInfoSet(list: List<String>): MutableSet<PeerInfo> {
-            var gson = Gson()
-            var out = mutableSetOf<PeerInfo>()
-            for(s in list) {
-                out.add(gson.fromJson(s, PeerInfo::class.java))
-            }
-            return out
-        }
-
-        @JvmStatic
-        fun deserializeStringList2DNSInfoSet(list: List<String>): MutableSet<DNSInfo> {
-            var gson = Gson()
-            var out = mutableSetOf<DNSInfo>()
-            for(s in list) {
-                out.add(gson.fromJson(s, DNSInfo::class.java))
-            }
-            return out
-        }
-
-        @JvmStatic
-        fun deserializeStringSet2PeerInfoSet(list: Set<String>): MutableSet<PeerInfo> {
-            var gson = Gson()
-            var out = mutableSetOf<PeerInfo>()
-            for(s in list) {
-                out.add(gson.fromJson(s, PeerInfo::class.java))
-            }
-            return out
-        }
-
-        @JvmStatic
-        fun deserializeStringSet2DNSInfoSet(list: Set<String>): MutableSet<DNSInfo> {
-            var gson = Gson()
-            var out = mutableSetOf<DNSInfo>()
-            for(s in list) {
-                out.add(gson.fromJson(s, DNSInfo::class.java))
-            }
-            return out
-        }
-
-        @JvmStatic
-        fun serializePeerInfoSet2StringList(list: Set<PeerInfo>): ArrayList<String> {
-            var gson = Gson()
-            var out = ArrayList<String>()
-            for(p in list) {
-                out.add(gson.toJson(p))
-            }
-            return out
-        }
-
-        @JvmStatic
-        fun serializeDNSInfoSet2StringList(list: Set<DNSInfo>): ArrayList<String> {
-            var gson = Gson()
-            var out = ArrayList<String>()
-            for(p in list) {
-                out.add(gson.toJson(p))
-            }
-            return out
-        }
     }
 
     private var currentPeers = setOf<PeerInfo>()
@@ -114,9 +58,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        LocalBroadcastManager.getInstance(this).registerReceiver(ServiceEchoReceiver(), IntentFilter("pong"));
-        LocalBroadcastManager.getInstance(this).sendBroadcastSync(Intent("ping"));
         setContentView(R.layout.activity_main)
+        isStarted = isYggServiceRunning(this)
         val listView = findViewById<ListView>(R.id.peers)
         //save to shared preferences
         val preferences =
@@ -294,10 +237,15 @@ class MainActivity : AppCompatActivity() {
         toast.show()
     }
 
-    private class ServiceEchoReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            isStarted = true
+    //TODO reimplement it
+    private fun isYggServiceRunning(context: Context): Boolean {
+        val manager =
+            context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (YggdrasilTunService::class.java.getName() == service.service.className) {
+                return true
+            }
         }
+        return false
     }
-
 }

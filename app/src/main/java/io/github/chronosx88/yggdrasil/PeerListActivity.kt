@@ -18,7 +18,9 @@ import com.hbb20.CCPCountry
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.Status
 import io.github.chronosx88.yggdrasil.models.config.SelectPeerInfoListAdapter
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.ping
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializePeerInfoSet2StringList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -60,7 +62,7 @@ class PeerListActivity : AppCompatActivity() {
 
         GlobalScope.launch {
             try {
-                var cp = MainActivity.deserializeStringList2PeerInfoSet(
+                var cp = deserializeStringList2PeerInfoSet(
                     extras!!.getStringArrayList(MainActivity.PEER_LIST)!!
                 )
                 for(pi in cp){
@@ -125,7 +127,7 @@ class PeerListActivity : AppCompatActivity() {
             var adapter = findViewById<ListView>(R.id.peerList).adapter as SelectPeerInfoListAdapter
             val selectedPeers = adapter.getSelectedPeers()
             if(selectedPeers.size>0) {
-                result.putExtra(MainActivity.PEER_LIST, MainActivity.serializePeerInfoSet2StringList(selectedPeers))
+                result.putExtra(MainActivity.PEER_LIST, serializePeerInfoSet2StringList(selectedPeers))
                 setResult(Activity.RESULT_OK, result)
                 finish()
             } else {
