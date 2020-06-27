@@ -92,7 +92,7 @@ class DNSListActivity : AppCompatActivity() {
             val result = Intent(this, MainActivity::class.java)
             var adapter = findViewById<ListView>(R.id.dnsList).adapter as SelectDNSInfoListAdapter
             val selectedDNS = adapter.getSelectedDNS()
-            if(selectedDNS.size>0) {
+            if(selectedDNS.isNotEmpty()) {
                 result.putExtra(MainActivity.DNS_LIST, MainActivity.serializeDNSInfoSet2StringList(selectedDNS))
                 setResult(Activity.RESULT_OK, result)
                 finish()

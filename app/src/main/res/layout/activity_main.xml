@@ -14,10 +14,11 @@
             android:layout_margin="20dp"
             android:background="@drawable/info_panel_rounded_corner"
             android:gravity="left"
+            android:paddingLeft="20dp"
             android:orientation="vertical"
             app:layout_constraintTop_toTopOf="parent"
-            android:visibility="gone"
-            android:animateLayoutChanges="true">
+            android:animateLayoutChanges="true"
+            android:visibility="gone">
 
         <TextView
                 android:id="@+id/ipLabel"
@@ -26,22 +27,35 @@
                 android:background="@android:color/transparent"
                 android:elevation="8dp"
                 android:gravity="center_vertical"
-                android:paddingLeft="20dp"
-                android:text="Your IP address:"
+                android:text="IP address:"
                 android:textColor="@color/dark_30" />
-        <TextView
-                android:id="@+id/ip"
+
+        <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:background="@android:color/transparent"
-                android:elevation="8dp"
-                android:gravity="center_vertical"
-                android:paddingLeft="20dp"
-                android:layout_marginBottom="10dp"
-                android:text=""
-                android:textColor="@color/white"
-                app:layout_constraintBottom_toTopOf="@+id/connectRadioGroup"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent">
+            <TextView
+                    android:id="@+id/ip"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:background="@android:color/transparent"
+                    android:elevation="8dp"
+                    android:gravity="center_vertical"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/copyIp"
+                    android:text=""
+                    android:textColor="@color/white"/>
+            <Button
+                    android:id="@+id/copyIp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="COPY"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:background="@android:color/transparent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>
 
@@ -58,8 +72,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                android:orientation="horizontal">
+                app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                     android:id="@+id/ipPeers"
@@ -80,8 +93,8 @@
                     android:text="EDIT"
                     app:layout_constraintEnd_toEndOf="parent"
                     android:background="@android:color/transparent"/>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
+
         <ListView
                 android:id="@+id/peers"
                 android:layout_width="match_parent"
@@ -106,8 +119,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                android:orientation="horizontal">
+                app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                     android:id="@+id/dnsLabel"

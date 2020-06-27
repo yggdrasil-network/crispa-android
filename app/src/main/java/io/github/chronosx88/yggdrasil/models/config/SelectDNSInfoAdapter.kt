@@ -23,7 +23,7 @@ class SelectDNSInfoListAdapter(
     private var currentDNS: MutableSet<DNSInfo> = currentDNS
 
     override fun getItem(position: Int): DNSInfo? {
-        return allDNS.get(position)
+        return allDNS[position]
     }
 
     override fun getCount(): Int {
@@ -76,13 +76,6 @@ class SelectDNSInfoListAdapter(
 
     fun addItem(peerInfo: DNSInfo){
         allDNS.add(peerInfo)
-    }
-
-    fun addAll(index: Int, peerInfo: ArrayList<DNSInfo>){
-        currentDNS.addAll(peerInfo)
-        allDNS.removeAll(peerInfo)
-        allDNS.addAll(index, peerInfo)
-        this.notifyDataSetChanged()
     }
 
     fun sort(){

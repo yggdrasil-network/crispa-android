@@ -163,8 +163,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun startVpn(){
         Log.d(TAG,"Start")
-        val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
-        ipLayout.visibility = View.VISIBLE
         val intent= VpnService.prepare(this)
         if (intent!=null){
             startActivityForResult(intent, VPN_REQUEST_CODE)
@@ -253,13 +251,16 @@ class MainActivity : AppCompatActivity() {
         when (resultCode) {
             STATUS_START -> print("service started")
             STATUS_FINISH -> {
+                isStarted = true
+                val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
+                ipLayout.visibility = View.VISIBLE
                 val result: String = data!!.getStringExtra(IPv6)
                 findViewById<TextView>(R.id.ip).text = result
-                isStarted = true
             }
             STATUS_STOP -> {
                 isStarted = false
-                finish()
+                val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
+                ipLayout.visibility = View.GONE
             }
             else -> { // Note the block
 

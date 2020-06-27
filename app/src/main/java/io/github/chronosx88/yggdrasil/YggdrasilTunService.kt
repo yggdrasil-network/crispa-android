@@ -5,13 +5,12 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
+import android.util.Log
 import com.google.gson.Gson
 import dummy.ConduitEndpoint
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
@@ -40,11 +39,9 @@ class YggdrasilTunService : VpnService() {
         }
     }
     private var tunInterface: ParcelFileDescriptor? = null
-    private lateinit var yggConduitEndpoint: ConduitEndpoint
     private var tunInputStream: InputStream? = null
     private var tunOutputStream: OutputStream? = null
-    private lateinit var readCoroutine: CoroutineContext
-    private lateinit var writeCoroutine: CoroutineContext
+    private var scope: CoroutineScope? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
@@ -75,37 +72,40 @@ class YggdrasilTunService : VpnService() {
         config = fixConfig(config, peers)
         configJson = gson.toJson(config).toByteArray()
 
-        yggConduitEndpoint = ygg.startJSON(configJson)
+        var yggConduitEndpoint = ygg.startJSON(configJson)
         val address = ygg.addressString // hack for getting generic ipv6 string from NodeID
 
         var builder = Builder()
             .addAddress(address, 7)
             .allowFamily(OsConstants.AF_INET)
             .setMtu(MAX_PACKET_SIZE)
-        if(dns.size>0){
-            for (d in dns){
+        if (dns.size > 0) {
+            for (d in dns) {
                 builder.addDnsServer(d.address)
             }
         }
         tunInterface = builder.establish()
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
         tunOutputStream = FileOutputStream(tunInterface!!.fileDescriptor)
-        readCoroutine = GlobalScope.launch {
+        val job = SupervisorJob()
+        scope = CoroutineScope(Dispatchers.Default + job)
+        scope!!.launch {
             val buffer = ByteArray(2048)
-            try{
-                while (true) {
-                        readPacketsFromTun(buffer)
+            try {
+                while (!isClosed) {
+                    readPacketsFromTun(yggConduitEndpoint, buffer)
                 }
-            } catch (e: IOException){
+            } catch (e: IOException) {
                 e.printStackTrace()
                 tunInputStream!!.close()
             }
         }
-        writeCoroutine = GlobalScope.launch {
-            while (true) {
-                writePacketsToTun()
+        scope!!.launch {
+            while (!isClosed) {
+                writePacketsToTun(yggConduitEndpoint)
             }
         }
+
         val intent: Intent = Intent().putExtra(MainActivity.IPv6, address)
         pi.send(this, MainActivity.STATUS_FINISH, intent)
     }
@@ -141,21 +141,19 @@ class YggdrasilTunService : VpnService() {
         return config
     }
 
-    private fun readPacketsFromTun(buffer: ByteArray) {
-        if(!isClosed) {
-            // Read the outgoing packet from the input stream.
-            val length = tunInputStream!!.read(buffer)
-            if (length > 0) {
-                val byteBuffer = ByteBuffer.allocate(length)
-                byteBuffer.put(buffer, 0, length)
-                yggConduitEndpoint.send(byteBuffer.array())
-            } else {
-                Thread.sleep(10)
-            }
+    private fun readPacketsFromTun(yggConduitEndpoint: ConduitEndpoint, buffer: ByteArray) {
+        // Read the outgoing packet from the input stream.
+        val length = tunInputStream!!.read(buffer)
+        if (length > 0) {
+            val byteBuffer = ByteBuffer.allocate(length)
+            byteBuffer.put(buffer, 0, length)
+            yggConduitEndpoint.send(byteBuffer.array())
+        } else {
+            Thread.sleep(10)
         }
     }
 
-    private fun writePacketsToTun() {
+    private fun writePacketsToTun(yggConduitEndpoint: ConduitEndpoint) {
         if(tunOutputStream != null) {
             val buffer = yggConduitEndpoint.recv()
             if(buffer!=null) {
@@ -170,12 +168,12 @@ class YggdrasilTunService : VpnService() {
 
     private fun stopVpn(pi: PendingIntent) {
         isClosed = true;
-        readCoroutine.cancel()
-        writeCoroutine.cancel()
+        scope!!.coroutineContext.cancelChildren()
         tunInputStream!!.close()
         tunOutputStream!!.close()
         tunInterface!!.close()
         tunInterface = null
+        Log.d(TAG,"Stop is running from service")
         ygg.stop()
         val intent: Intent = Intent()
         pi.send(this, MainActivity.STATUS_STOP, intent)
