@@ -72,11 +72,11 @@ class MainActivity : AppCompatActivity() {
 
         val copyAddressButton = findViewById<Button>(R.id.copyIp)
         copyAddressButton.setOnClickListener {
-            val ipLabel = findViewById<TextView>(R.id.ipLabel)
+            val ip = findViewById<TextView>(R.id.ip)
             val clipboard: ClipboardManager =
                 getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip =
-                ClipData.newPlainText("IP address", ipLabel.text.toString())
+                ClipData.newPlainText("IP address", ip.text.toString())
             clipboard.setPrimaryClip(clip)
             showToast(getString(R.string.address_copied))
         }

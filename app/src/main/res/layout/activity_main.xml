@@ -17,23 +17,34 @@
             android:paddingLeft="20dp"
             android:orientation="vertical"
             app:layout_constraintTop_toTopOf="parent"
-            android:animateLayoutChanges="true"
-            android:visibility="gone">
-
-        <TextView
-                android:id="@+id/ipLabel"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:background="@android:color/transparent"
-                android:elevation="8dp"
-                android:gravity="center_vertical"
-                android:text="IP address:"
-                android:textColor="@color/dark_30" />
-
+            android:animateLayoutChanges="true">
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent">
+            <TextView
+                    android:id="@+id/ipLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@android:color/transparent"
+                    android:elevation="8dp"
+                    android:gravity="center_vertical"
+                    android:text="IP address:"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                android:textColor="@color/dark_30" />
+
+            <Button
+                    android:id="@+id/copyIp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="COPY"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:background="@android:color/transparent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
             <TextView
                     android:id="@+id/ip"
                     android:layout_width="match_parent"
@@ -47,15 +58,6 @@
                     app:layout_constraintEnd_toStartOf="@+id/copyIp"
                     android:text=""
                     android:textColor="@color/white"/>
-            <Button
-                    android:id="@+id/copyIp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="COPY"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:background="@android:color/transparent"/>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>
 
