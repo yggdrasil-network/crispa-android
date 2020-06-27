@@ -1,11 +1,15 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import dummy.ConduitEndpoint
 import io.github.chronosx88.yggdrasil.models.DNSInfo
@@ -15,7 +19,6 @@ import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
 import java.nio.ByteBuffer
-import kotlin.coroutines.CoroutineContext
 
 
 class YggdrasilTunService : VpnService() {
@@ -42,6 +45,13 @@ class YggdrasilTunService : VpnService() {
     private var tunInputStream: InputStream? = null
     private var tunOutputStream: OutputStream? = null
     private var scope: CoroutineScope? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        LocalBroadcastManager
+            .getInstance(this)
+            .registerReceiver(ServiceEchoReceiver(), IntentFilter("ping"))
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
@@ -183,5 +193,13 @@ class YggdrasilTunService : VpnService() {
     override fun onDestroy() {
         super.onDestroy()
         stopSelf()
+    }
+
+    private class ServiceEchoReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            LocalBroadcastManager
+                .getInstance(context!!)
+                .sendBroadcastSync(Intent("pong"))
+        }
     }
 }

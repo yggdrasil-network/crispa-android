@@ -1,7 +1,10 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.VpnService
 import android.os.Bundle
 import android.util.Log
@@ -11,14 +14,13 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.config.DNSInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.PeerInfoListAdapter
-import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
 
 
 class MainActivity : AppCompatActivity() {
@@ -43,6 +45,8 @@ class MainActivity : AppCompatActivity() {
         const val START_VPN = "START_VPN"
         private const val TAG="Yggdrasil"
         private const val VPN_REQUEST_CODE = 0x0F
+
+        @JvmStatic var isStarted = false
 
         @JvmStatic
         fun deserializeStringList2PeerInfoSet(list: List<String>): MutableSet<PeerInfo> {
@@ -105,13 +109,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private var startVpnFlag = false
     private var currentPeers = setOf<PeerInfo>()
     private var currentDNS = setOf<DNSInfo>()
-    private var isStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        LocalBroadcastManager.getInstance(this).registerReceiver(ServiceEchoReceiver(), IntentFilter("pong"));
+        LocalBroadcastManager.getInstance(this).sendBroadcastSync(Intent("ping"));
         setContentView(R.layout.activity_main)
         val listView = findViewById<ListView>(R.id.peers)
         //save to shared preferences
@@ -145,9 +149,6 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, DNSListActivity::class.java)
             intent.putStringArrayListExtra(DNS_LIST, serializeDNSInfoSet2StringList(currentDNS))
             startActivityForResult(intent, DNS_LIST_CODE)
-        }
-        if(intent.extras!==null) {
-            startVpnFlag = intent.extras!!.getBoolean(START_VPN, false)
         }
     }
 
@@ -212,7 +213,6 @@ class MainActivity : AppCompatActivity() {
                         i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         i.putExtra(START_VPN, true)
-                        finish()
                         startActivity(i)
                     }
                 }
@@ -241,7 +241,6 @@ class MainActivity : AppCompatActivity() {
                         i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         i.putExtra(START_VPN, true)
-                        finish()
                         startActivity(i)
                     }
                 }
@@ -275,12 +274,8 @@ class MainActivity : AppCompatActivity() {
         item.setActionView(R.layout.menu_switch)
         val switchOn = item
             .actionView.findViewById<Switch>(R.id.switchOn)
-        if(startVpnFlag){
+        if(isStarted){
             switchOn.isChecked = true
-            startVpnFlag = false
-            startVpn()
-        } else {
-            switchOn.isChecked = false
         }
         switchOn.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
@@ -297,6 +292,12 @@ class MainActivity : AppCompatActivity() {
         val toast = Toast.makeText(applicationContext, text, duration)
         toast.setGravity(Gravity.CENTER, 0, 0)
         toast.show()
+    }
+
+    private class ServiceEchoReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            isStarted = true
+        }
     }
 
 }
