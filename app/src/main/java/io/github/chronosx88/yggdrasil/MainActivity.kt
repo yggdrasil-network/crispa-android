@@ -2,6 +2,8 @@ package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
 import android.app.ActivityManager
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
@@ -65,9 +67,19 @@ class MainActivity : AppCompatActivity() {
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
         currentPeers = deserializeStringSet2PeerInfoSet(preferences.getStringSet(CURRENT_PEERS, HashSet())!!)
-
         val adapter = PeerInfoListAdapter(this, currentPeers.sortedWith(compareBy { it.ping }))
         listView.adapter = adapter
+
+        val copyAddressButton = findViewById<Button>(R.id.copyIp)
+        copyAddressButton.setOnClickListener {
+            val ipLabel = findViewById<TextView>(R.id.ipLabel)
+            val clipboard: ClipboardManager =
+                getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip =
+                ClipData.newPlainText("IP address", ipLabel.text.toString())
+            clipboard.setPrimaryClip(clip)
+            showToast(getString(R.string.address_copied))
+        }
         val editPeersButton = findViewById<Button>(R.id.edit)
         editPeersButton.setOnClickListener {
             if(isStarted){
@@ -132,7 +144,9 @@ class MainActivity : AppCompatActivity() {
             intent.putStringArrayListExtra(DNS, serializeDNSInfoSet2StringList(currentDNS))
             startService(intent)
         }
-
+        if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_CANCELED){
+            //TODO implement
+        }
         if (requestCode == PEER_LIST_CODE && resultCode== Activity.RESULT_OK){
             if(data!!.extras!=null){
                 var currentPeers = data.extras!!.getStringArrayList(PEER_LIST)
@@ -221,11 +235,16 @@ class MainActivity : AppCompatActivity() {
             switchOn.isChecked = true
         }
         switchOn.setOnCheckedChangeListener { _, isChecked ->
+            if(currentPeers.isEmpty()){
+                switchOn.isChecked = false
+                return@setOnCheckedChangeListener
+            }
             if (isChecked) {
                 startVpn()
             } else {
                 stopVpn()
             }
+
         }
         return true
     }
