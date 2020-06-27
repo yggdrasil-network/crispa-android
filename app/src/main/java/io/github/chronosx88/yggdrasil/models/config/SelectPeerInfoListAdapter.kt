@@ -18,6 +18,7 @@ class SelectPeerInfoListAdapter(
     currentPeers: MutableSet<PeerInfo>
 ) : ArrayAdapter<PeerInfo?> (context, 0, allPeers) {
 
+    private var isLoading = true
     private val mContext: Context = context
     private var allPeers: MutableList<PeerInfo> = allPeers as MutableList<PeerInfo>
     private var currentPeers: MutableSet<PeerInfo> = currentPeers
@@ -56,13 +57,15 @@ class SelectPeerInfoListAdapter(
             peerInfoHolder.peerInfoText.setTextColor(Color.WHITE)
         }
         peerInfoHolder.checkbox.setOnCheckedChangeListener { _, isChecked ->
-            if(isChecked){
-                if(!currentPeers.contains(currentPeer)){
-                    currentPeers.add(currentPeer)
-                }
-            } else {
-                if(currentPeers.contains(currentPeer)){
-                    currentPeers.remove(currentPeer)
+            if(!isLoading) {
+                if (isChecked) {
+                    if (!currentPeers.contains(currentPeer)) {
+                        currentPeers.add(currentPeer)
+                    }
+                } else {
+                    if (currentPeers.contains(currentPeer)) {
+                        currentPeers.remove(currentPeer)
+                    }
                 }
             }
         }
@@ -88,6 +91,10 @@ class SelectPeerInfoListAdapter(
     fun sort(){
         allPeers = ArrayList(allPeers.sortedWith(compareBy { it.ping }))
         this.notifyDataSetChanged()
+    }
+
+    fun setLoading(loading: Boolean){
+        this.isLoading = loading
     }
 
     class PeerInfoHolder {

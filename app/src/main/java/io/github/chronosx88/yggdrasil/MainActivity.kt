@@ -45,8 +45,8 @@ class MainActivity : AppCompatActivity() {
         const val DNS_LIST_CODE = 2000
         const val PEER_LIST = "PEERS_LIST"
         const val DNS_LIST = "DNS_LIST"
-        const val CURRENT_PEERS = "CURRENT_PEERS_v1.1"
-        const val CURRENT_DNS = "CURRENT_DNS_v1.1"
+        const val CURRENT_PEERS = "CURRENT_PEERS_v1.2"
+        const val CURRENT_DNS = "CURRENT_DNS_v1.2"
         const val START_VPN = "START_VPN"
         private const val TAG="Yggdrasil"
         private const val VPN_REQUEST_CODE = 0x0F
@@ -57,11 +57,17 @@ class MainActivity : AppCompatActivity() {
 
     private var currentPeers = setOf<PeerInfo>()
     private var currentDNS = setOf<DNSInfo>()
+    private var startVpnFlag = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        isStarted = isYggServiceRunning(this)
+        if(intent.extras!==null) {
+            startVpnFlag = intent.extras!!.getBoolean(START_VPN, false)
+            isStarted = true
+        } else {
+            isStarted = isYggServiceRunning(this)
+        }
         val listView = findViewById<ListView>(R.id.peers)
         //save to shared preferences
         val preferences =
@@ -193,6 +199,7 @@ class MainActivity : AppCompatActivity() {
                     if(isStarted){
                         //TODO implement UpdateConfig method in native interface and apply peer changes
                         stopVpn()
+                        finish()
                         val i = baseContext.packageManager
                             .getLaunchIntentForPackage(baseContext.packageName)
                         i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -233,6 +240,9 @@ class MainActivity : AppCompatActivity() {
             .actionView.findViewById<Switch>(R.id.switchOn)
         if(isStarted){
             switchOn.isChecked = true
+            if(startVpnFlag) {
+                startVpn()
+            }
         }
         switchOn.setOnCheckedChangeListener { _, isChecked ->
             if(currentPeers.isEmpty()){

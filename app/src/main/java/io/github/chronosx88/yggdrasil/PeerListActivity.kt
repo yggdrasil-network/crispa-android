@@ -47,6 +47,8 @@ class PeerListActivity : AppCompatActivity() {
         }
     }
 
+    var isLoading = true;
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_peer_list)
@@ -108,6 +110,8 @@ class PeerListActivity : AppCompatActivity() {
                 var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
                 withContext(Dispatchers.Main) {
                     adapter.addAll(0, currentPeers)
+                    isLoading = false
+                    adapter.setLoading(isLoading)
                 }
             } catch (e: Throwable){
                 e.printStackTrace()
@@ -123,6 +127,9 @@ class PeerListActivity : AppCompatActivity() {
         val saveButton = item
             .actionView.findViewById<Button>(R.id.saveButton)
         saveButton.setOnClickListener {
+            if(isLoading){
+                return@setOnClickListener
+            }
             val result = Intent(this, MainActivity::class.java)
             var adapter = findViewById<ListView>(R.id.peerList).adapter as SelectPeerInfoListAdapter
             val selectedPeers = adapter.getSelectedPeers()
