@@ -12,21 +12,25 @@ class Utils {
     companion object {
 
         @JvmStatic
-        fun deserializeStringList2PeerInfoSet(list: List<String>): MutableSet<PeerInfo> {
+        fun deserializeStringList2PeerInfoSet(list: List<String>?): MutableSet<PeerInfo> {
             var gson = Gson()
             var out = mutableSetOf<PeerInfo>()
-            for(s in list) {
-                out.add(gson.fromJson(s, PeerInfo::class.java))
+            if (list != null) {
+                for(s in list) {
+                    out.add(gson.fromJson(s, PeerInfo::class.java))
+                }
             }
             return out
         }
 
         @JvmStatic
-        fun deserializeStringList2DNSInfoSet(list: List<String>): MutableSet<DNSInfo> {
+        fun deserializeStringList2DNSInfoSet(list: List<String>?): MutableSet<DNSInfo> {
             var gson = Gson()
             var out = mutableSetOf<DNSInfo>()
-            for(s in list) {
-                out.add(gson.fromJson(s, DNSInfo::class.java))
+            if (list != null) {
+                for(s in list) {
+                    out.add(gson.fromJson(s, DNSInfo::class.java))
+                }
             }
             return out
         }

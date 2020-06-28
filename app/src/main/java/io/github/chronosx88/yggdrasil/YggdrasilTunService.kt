@@ -39,21 +39,22 @@ class YggdrasilTunService : VpnService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.STOP) {
-            val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
-            stopVpn(pi)
-        }
-        if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.START) {
-            val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
-            val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
-            val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
-            ygg = Yggdrasil()
-            setupTunInterface(pi, peers, dns)
-        }
-        if (intent?.getStringExtra(MainActivity.COMMAND) == MainActivity.UPDATE_DNS) {
-            val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
-            val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
-            setupIOStreams(dns)
+        when(intent?.getStringExtra(MainActivity.COMMAND)){
+            MainActivity.STOP ->{
+                val pi: PendingIntent? = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
+                stopVpn(pi)
+            }
+            MainActivity.START ->{
+                val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
+                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
+                val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
+                ygg = Yggdrasil()
+                setupTunInterface(pi, peers, dns)
+            }
+            MainActivity.UPDATE_DNS ->{
+                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
+                setupIOStreams(dns)
+            }
         }
 
         return super.onStartCommand(intent, flags, startId)
@@ -82,11 +83,11 @@ class YggdrasilTunService : VpnService() {
     }
 
     private fun setupTunInterface(
-        pi: PendingIntent,
+        pi: PendingIntent?,
         peers: Set<PeerInfo>,
         dns: MutableSet<DNSInfo>
     ) {
-        pi.send(MainActivity.STATUS_START)
+        pi!!.send(MainActivity.STATUS_START)
         var configJson = Mobile.generateConfigJSON()
         val gson = Gson()
         var config = gson.fromJson(String(configJson), Map::class.java).toMutableMap()
@@ -173,7 +174,7 @@ class YggdrasilTunService : VpnService() {
         }
     }
 
-    private fun stopVpn(pi: PendingIntent) {
+    private fun stopVpn(pi: PendingIntent?) {
         isClosed = true;
         scope!!.coroutineContext.cancelChildren()
         tunInputStream!!.close()
@@ -183,7 +184,7 @@ class YggdrasilTunService : VpnService() {
         Log.d(TAG,"Stop is running from service")
         ygg.stop()
         val intent: Intent = Intent()
-        pi.send(this, MainActivity.STATUS_STOP, intent)
+        pi!!.send(this, MainActivity.STATUS_STOP, intent)
         stopSelf()
     }
 

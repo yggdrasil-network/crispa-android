@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
         @JvmStatic var isStarted = false
         @JvmStatic var isCancelled = false
-
+        @JvmStatic var address = ""
     }
 
     private var currentPeers = setOf<PeerInfo>()
@@ -132,6 +132,11 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, DNSListActivity::class.java)
             intent.putStringArrayListExtra(DNS_LIST, serializeDNSInfoSet2StringList(currentDNS))
             startActivityForResult(intent, DNS_LIST_CODE)
+        }
+        if(isStarted){
+            val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
+            ipLayout.visibility = View.VISIBLE
+            findViewById<TextView>(R.id.ip).text = address
         }
     }
 
@@ -242,8 +247,8 @@ class MainActivity : AppCompatActivity() {
                 isStarted = true
                 val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
                 ipLayout.visibility = View.VISIBLE
-                val result: String = data!!.getStringExtra(IPv6)
-                findViewById<TextView>(R.id.ip).text = result
+                address = data!!.getStringExtra(IPv6)
+                findViewById<TextView>(R.id.ip).text = address
             }
             STATUS_STOP -> {
                 isStarted = false
