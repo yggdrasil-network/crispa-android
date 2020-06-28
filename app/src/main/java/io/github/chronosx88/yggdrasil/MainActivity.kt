@@ -224,10 +224,11 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_OK){
+            /*
             if(currentPeers.isEmpty()){
                 showToast("No peers selected!")
                 return
-            }
+            }*/
             val intent = Intent(this, YggdrasilTunService::class.java)
             val TASK_CODE = 100
             val pi = createPendingResult(TASK_CODE, intent, 0)
