@@ -1,18 +1,20 @@
 package io.github.chronosx88.yggdrasil
 
+import android.Manifest
 import android.app.Activity
 import android.app.ActivityManager
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
+import android.content.pm.PackageManager
 import android.net.VpnService
+import android.net.wifi.p2p.WifiP2pDevice
+import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.preference.PreferenceManager
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
@@ -55,22 +57,30 @@ class MainActivity : AppCompatActivity() {
         @JvmStatic var address = ""
     }
 
+    private var receiver: MainActivity.WiFiDirectBroadcastReceiver? = null
+    private var mChannel: WifiP2pManager.Channel? = null
+    private var mManager: WifiP2pManager? = null
     private var currentPeers = setOf<PeerInfo>()
     private var currentDNS = setOf<DNSInfo>()
-    private var startVpnFlag = false
+
+    private val intentFilter = IntentFilter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
-        if(intent.extras!==null) {
-            startVpnFlag = intent.extras!!.getBoolean(START_VPN, false)
-            isStarted = true
-            //startVpn()
-        } else {
-            isStarted = isYggServiceRunning(this)
-        }
+        /*p2p part*/
+        //  Indicates a change in the Wi-Fi P2P status.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        // Indicates a change in the list of available peers.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        // Indicates the state of Wi-Fi P2P connectivity has changed.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        // Indicates this device's details have changed.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
+
+        isStarted = isYggServiceRunning(this)
         val switchOn = findViewById<Switch>(R.id.switchOn)
         switchOn.isChecked = isStarted
         switchOn.setOnCheckedChangeListener { _, isChecked ->
@@ -88,6 +98,43 @@ class MainActivity : AppCompatActivity() {
             } else {
                 stopVpn()
             }
+        }
+
+        val wifiDirect = findViewById<Switch>(R.id.wifiDirect)
+        wifiDirect.setOnCheckedChangeListener { _, isChecked ->
+            mManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
+            mChannel = mManager!!.initialize(this, mainLooper, null);
+
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return@setOnCheckedChangeListener
+            }
+            mManager!!.discoverPeers(mChannel, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    // Code for when the discovery initiation is successful goes here.
+                    // No services have actually been discovered yet, so this method
+                    // can often be left blank.  Code for peer discovery goes in the
+                    // onReceive method, detailed below.
+                    showToast("discover peers success")
+                }
+
+                override fun onFailure(reasonCode: Int) {
+                    // Code for when the discovery initiation fails goes here.
+                    // Alert the user that something went wrong.
+                    showToast("discover peers failed, code="+reasonCode)
+                }
+            })
+
         }
 
         val peersListView = findViewById<ListView>(R.id.peers)
@@ -278,5 +325,58 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return false
+    }
+
+    private class WiFiDirectBroadcastReceiver(mManager: WifiP2pManager,
+                                              mChannel: WifiP2pManager.Channel,
+                                                activity: MainActivity): BroadcastReceiver() {
+        var activity = activity
+
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action = intent!!.action
+            if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION == action) {
+                // Determine if Wifi P2P mode is enabled or not, alert
+                // the Activity.
+                val state = intent!!.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
+                if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
+                    activity.setIsWifiP2pEnabled(true)
+                } else {
+                    activity.setIsWifiP2pEnabled(false)
+                }
+            } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION == action) {
+                // The peer list has changed!  We should probably do something about
+                // that.
+            } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION == action) {
+
+                // Connection state changed!  We should probably do something about
+                // that.
+            } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION == action) {
+                activity.updateThisDevice(
+                    intent!!.getParcelableExtra(
+                        WifiP2pManager.EXTRA_WIFI_P2P_DEVICE
+                    ) as WifiP2pDevice
+                )
+            }
+        }
+    }
+
+    private fun updateThisDevice(wifiP2pDevice: WifiP2pDevice) {
+        showToast("update device:"+wifiP2pDevice.deviceName+" address:"+wifiP2pDevice.deviceAddress)
+    }
+
+    private fun setIsWifiP2pEnabled(b: Boolean) {
+        showToast("WifiP2pEnabled="+b)
+    }
+
+    /** register the BroadcastReceiver with the intent values to be matched  */
+    override fun onResume() {
+        super.onResume()
+        receiver = WiFiDirectBroadcastReceiver(mManager!!, mChannel!!, this)
+        registerReceiver(receiver, intentFilter)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(receiver)
     }
 }
