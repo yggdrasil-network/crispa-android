@@ -7,6 +7,7 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.net.wifi.p2p.WifiP2pDevice
+import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.util.Log
@@ -63,7 +64,10 @@ class MainActivity : AppCompatActivity() {
     private var currentPeers = setOf<PeerInfo>()
     private var currentDNS = setOf<DNSInfo>()
 
+    private val wirelessPeers = mutableListOf<WifiP2pDevice>()
     private val intentFilter = IntentFilter()
+
+    private val peerListListener = WirelessPeerList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,9 +106,6 @@ class MainActivity : AppCompatActivity() {
 
         val wifiDirect = findViewById<Switch>(R.id.wifiDirect)
         wifiDirect.setOnCheckedChangeListener { _, isChecked ->
-            mManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
-            mChannel = mManager!!.initialize(this, mainLooper, null);
-
             if (ActivityCompat.checkSelfPermission(
                     this,
                     Manifest.permission.ACCESS_FINE_LOCATION
@@ -327,11 +328,8 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-    private class WiFiDirectBroadcastReceiver(mManager: WifiP2pManager,
-                                              mChannel: WifiP2pManager.Channel,
-                                                activity: MainActivity): BroadcastReceiver() {
-        var activity = activity
-
+    inner class WiFiDirectBroadcastReceiver(mManager: WifiP2pManager,
+                                              mChannel: WifiP2pManager.Channel): BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val action = intent!!.action
             if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION == action) {
@@ -339,19 +337,40 @@ class MainActivity : AppCompatActivity() {
                 // the Activity.
                 val state = intent!!.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
                 if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
-                    activity.setIsWifiP2pEnabled(true)
+                    this@MainActivity.setIsWifiP2pEnabled(true)
                 } else {
-                    activity.setIsWifiP2pEnabled(false)
+                    this@MainActivity.setIsWifiP2pEnabled(false)
                 }
             } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION == action) {
                 // The peer list has changed!  We should probably do something about
                 // that.
+                // Request available peers from the wifi p2p manager. This is an
+                // asynchronous call and the calling activity is notified with a
+                // callback on PeerListListener.onPeersAvailable()
+                if (mManager != null) {
+                    if (ActivityCompat.checkSelfPermission(
+                            this@MainActivity,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        // TODO: Consider calling
+                        //    ActivityCompat#requestPermissions
+                        // here to request the missing permissions, and then overriding
+                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                        //                                          int[] grantResults)
+                        // to handle the case where the user grants the permission. See the documentation
+                        // for ActivityCompat#requestPermissions for more details.
+                        return
+                    }
+                    mManager!!.requestPeers(mChannel, peerListListener);
+                }
+                Log.d(TAG, "P2P peers changed");
             } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION == action) {
 
                 // Connection state changed!  We should probably do something about
                 // that.
             } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION == action) {
-                activity.updateThisDevice(
+                this@MainActivity.updateThisDevice(
                     intent!!.getParcelableExtra(
                         WifiP2pManager.EXTRA_WIFI_P2P_DEVICE
                     ) as WifiP2pDevice
@@ -371,12 +390,28 @@ class MainActivity : AppCompatActivity() {
     /** register the BroadcastReceiver with the intent values to be matched  */
     override fun onResume() {
         super.onResume()
-        receiver = WiFiDirectBroadcastReceiver(mManager!!, mChannel!!, this)
+        mManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
+        mChannel = mManager!!.initialize(this, mainLooper, null);
+        receiver = WiFiDirectBroadcastReceiver(mManager!!, mChannel!!)
         registerReceiver(receiver, intentFilter)
     }
 
     override fun onPause() {
         super.onPause()
         unregisterReceiver(receiver)
+    }
+
+    inner class WirelessPeerList:WifiP2pManager.PeerListListener{
+
+        override fun onPeersAvailable(peers: WifiP2pDeviceList?) {
+            // Out with the old, in with the new.
+            this@MainActivity.wirelessPeers.clear()
+            this@MainActivity.wirelessPeers.addAll(peers!!.deviceList);
+            // If an AdapterView is backed by this data, notify it // of the change. For instance, if you have a ListView of available // peers, trigger an update.
+            //((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged(); if (peers.size() == 0) { Log.d(WiFiDirectActivity.TAG, "No devices found"); return; } }
+            //just show message
+            showToast("available peers:"+this@MainActivity.wirelessPeers.size)
+        }
+
     }
 }
