@@ -86,5 +86,14 @@ class Utils {
             return (System.currentTimeMillis() - start).toInt()
         }
 
+        @JvmStatic
+        fun convertPeerInfoSet2PeerIdSet(list: Set<PeerInfo>): Set<String> {
+            var out = mutableSetOf<String>()
+            for(p in list) {
+                out.add(p.toString())
+            }
+            return out
+        }
+
     }
 }

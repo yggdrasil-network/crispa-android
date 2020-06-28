@@ -10,8 +10,6 @@ import android.net.VpnService
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -34,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         const val COMMAND = "COMMAND"
         const val STOP = "STOP"
         const val START = "START"
+        const val UPDATE_DNS = "UPDATE_DNS"
         const val PARAM_PINTENT = "pendingIntent"
         const val STATUS_START = 7
         const val STATUS_FINISH = 8
@@ -52,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         private const val VPN_REQUEST_CODE = 0x0F
 
         @JvmStatic var isStarted = false
+        @JvmStatic var isCancelled = false
 
     }
 
@@ -62,19 +62,41 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setSupportActionBar(findViewById(R.id.toolbar))
         if(intent.extras!==null) {
             startVpnFlag = intent.extras!!.getBoolean(START_VPN, false)
             isStarted = true
+            //startVpn()
         } else {
             isStarted = isYggServiceRunning(this)
         }
-        val listView = findViewById<ListView>(R.id.peers)
+
+        val switchOn = findViewById<Switch>(R.id.switchOn)
+        switchOn.isChecked = isStarted
+        switchOn.setOnCheckedChangeListener { _, isChecked ->
+            if(currentPeers.isEmpty()){
+                switchOn.isChecked = false
+                return@setOnCheckedChangeListener
+            }
+            if(isCancelled){
+                switchOn.isChecked = false
+                isCancelled = false
+                return@setOnCheckedChangeListener
+            }
+            if (isChecked) {
+                startVpn()
+            } else {
+                stopVpn()
+            }
+        }
+
+        val peersListView = findViewById<ListView>(R.id.peers)
         //save to shared preferences
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
         currentPeers = deserializeStringSet2PeerInfoSet(preferences.getStringSet(CURRENT_PEERS, HashSet())!!)
         val adapter = PeerInfoListAdapter(this, currentPeers.sortedWith(compareBy { it.ping }))
-        listView.adapter = adapter
+        peersListView.adapter = adapter
 
         val copyAddressButton = findViewById<Button>(R.id.copyIp)
         copyAddressButton.setOnClickListener {
@@ -133,6 +155,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateDNS(){
+        Log.d(TAG,"Update DNS")
+        val intent = Intent(this, YggdrasilTunService::class.java)
+        val TASK_CODE = 100
+        val pi = createPendingResult(TASK_CODE, intent, 0)
+        intent.putExtra(PARAM_PINTENT, pi)
+        intent.putExtra(COMMAND, UPDATE_DNS)
+        intent.putStringArrayListExtra(DNS, serializeDNSInfoSet2StringList(currentDNS))
+        startService(intent)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -151,7 +184,7 @@ class MainActivity : AppCompatActivity() {
             startService(intent)
         }
         if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_CANCELED){
-            //TODO implement
+            isCancelled = true
         }
         if (requestCode == PEER_LIST_CODE && resultCode== Activity.RESULT_OK){
             if(data!!.extras!=null){
@@ -197,15 +230,7 @@ class MainActivity : AppCompatActivity() {
                         PreferenceManager.getDefaultSharedPreferences(this.baseContext)
                     preferences.edit().putStringSet(CURRENT_DNS, HashSet(currentDNS)).apply()
                     if(isStarted){
-                        //TODO implement UpdateConfig method in native interface and apply peer changes
-                        stopVpn()
-                        finish()
-                        val i = baseContext.packageManager
-                            .getLaunchIntentForPackage(baseContext.packageName)
-                        i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        i.putExtra(START_VPN, true)
-                        startActivity(i)
+                        updateDNS()
                     }
                 }
             }
@@ -229,34 +254,6 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main_menu, menu)
-        val item = menu.findItem(R.id.switchId) as MenuItem
-        item.setActionView(R.layout.menu_switch)
-        val switchOn = item
-            .actionView.findViewById<Switch>(R.id.switchOn)
-        if(isStarted){
-            switchOn.isChecked = true
-            if(startVpnFlag) {
-                startVpn()
-            }
-        }
-        switchOn.setOnCheckedChangeListener { _, isChecked ->
-            if(currentPeers.isEmpty()){
-                switchOn.isChecked = false
-                return@setOnCheckedChangeListener
-            }
-            if (isChecked) {
-                startVpn()
-            } else {
-                stopVpn()
-            }
-
-        }
-        return true
     }
 
     private fun showToast(text: String){

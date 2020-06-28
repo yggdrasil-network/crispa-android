@@ -1,158 +1,48 @@
-<androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/grey"
-        tools:context=".MainActivity">
+        tools:context=".MainActivity"
+        android:background="@color/grey">
 
-    <LinearLayout
-            android:id="@+id/ipLayout"
+    <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-            android:background="@drawable/info_panel_rounded_corner"
-            android:gravity="left"
-            android:paddingLeft="20dp"
-            android:orientation="vertical"
-            app:layout_constraintTop_toTopOf="parent"
-            android:animateLayoutChanges="true"
-            android:visibility="gone">
+            android:theme="@style/AppTheme.AppBarOverlay">
+
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent">
-            <TextView
-                    android:id="@+id/ipLabel"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+            <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:background="@android:color/transparent"
-                    android:elevation="8dp"
-                    android:gravity="center_vertical"
-                    android:text="IP address:"
+                    android:layout_height="?attr/actionBarSize"
+                    android:layout_marginEnd="70dp"
+                    android:background="?attr/colorPrimary"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:textColor="@color/dark_30"
-                    />
-            <Button
-                    android:id="@+id/copyIp"
+                    app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+            <Switch
+                    android:id="@+id/switchOn"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="COPY"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:theme="@style/SwitchTheme"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    android:background="@android:color/transparent"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <TextView
-                    android:id="@+id/ip"
-                    android:layout_width="match_parent"
-                    android:layout_height="30dp"
-                    android:background="@android:color/transparent"
-                    android:elevation="8dp"
-                    android:gravity="center_vertical"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/copyIp"
-                    android:text=""
-                    android:textColor="@color/white"/>
-    </LinearLayout>
-
-    <LinearLayout
-            android:id="@+id/peerLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-            android:background="@drawable/info_panel_rounded_corner"
-            android:gravity="left"
-            android:paddingLeft="20dp"
-            android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/ipLayout">
-        <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                    android:id="@+id/ipPeers"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:background="@android:color/transparent"
-                    android:elevation="8dp"
-                    android:gravity="center_vertical"
-                    android:text="Peers:"
-                    android:textColor="@color/dark_30"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
-            <Button
-                    android:id="@+id/edit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="EDIT"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:background="@android:color/transparent"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ListView
-                android:id="@+id/peers"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="10dp"
-                android:dividerHeight="0dp"
-                android:divider="@null"
-                app:layout_constraintTop_toTopOf="parent"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
-    </LinearLayout>
+    <include layout="@layout/content_main" />
 
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-            android:background="@drawable/info_panel_rounded_corner"
-            android:gravity="left"
-            android:paddingLeft="20dp"
-            android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/peerLayout">
-        <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                    android:id="@+id/dnsLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:background="@android:color/transparent"
-                    android:elevation="8dp"
-                    android:gravity="center_vertical"
-                    android:text="DNS:"
-                    android:textColor="@color/dark_30"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-            <Button
-                    android:id="@+id/editDNS"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="EDIT"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:background="@android:color/transparent"/>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-        <ListView
-                android:id="@+id/dns"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="10dp"
-                android:dividerHeight="0dp"
-                android:divider="@null"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
