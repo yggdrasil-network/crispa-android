@@ -65,6 +65,7 @@ class YggdrasilTunService : VpnService() {
         var builder = Builder()
             .addAddress(address, 7)
             .allowFamily(OsConstants.AF_INET)
+            .allowFamily(OsConstants.AF_INET6)
             .setMtu(MAX_PACKET_SIZE)
         if (dns.size > 0) {
             for (d in dns) {
