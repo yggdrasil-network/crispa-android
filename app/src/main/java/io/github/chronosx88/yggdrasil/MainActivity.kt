@@ -87,8 +87,9 @@ class MainActivity : AppCompatActivity() {
         isStarted = isYggServiceRunning(this)
         val switchOn = findViewById<Switch>(R.id.switchOn)
         switchOn.isChecked = isStarted
+        val wifiDirect = findViewById<Switch>(R.id.wifiDirect)
         switchOn.setOnCheckedChangeListener { _, isChecked ->
-            if(currentPeers.isEmpty()){
+            if(currentPeers.isEmpty() && !wifiDirect.isChecked){
                 switchOn.isChecked = false
                 return@setOnCheckedChangeListener
             }
@@ -104,7 +105,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val wifiDirect = findViewById<Switch>(R.id.wifiDirect)
+
         wifiDirect.setOnCheckedChangeListener { _, isChecked ->
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -242,9 +243,10 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == PEER_LIST_CODE && resultCode== Activity.RESULT_OK){
             if(data!!.extras!=null){
                 var currentPeers = data.extras!!.getStringArrayList(PEER_LIST)
-                if(currentPeers==null || currentPeers.size==0){
-                    showToast("No peers selected!")
-                } else {
+                /*WiFi Direct test. need peer empty list*/
+                //if(currentPeers==null || currentPeers.size==0){
+                //    showToast("No peers selected!")
+                //} else {
                     this.currentPeers = deserializeStringList2PeerInfoSet(currentPeers)
                     val adapter = PeerInfoListAdapter(this, this.currentPeers.sortedWith(compareBy { it.ping }))
                     val listView = findViewById<ListView>(R.id.peers)
@@ -264,7 +266,7 @@ class MainActivity : AppCompatActivity() {
                         i.putExtra(START_VPN, true)
                         startActivity(i)
                     }
-                }
+                //}
             }
         }
 
