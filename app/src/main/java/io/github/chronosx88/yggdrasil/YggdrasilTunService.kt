@@ -70,6 +70,7 @@ class YggdrasilTunService : VpnService() {
             .addAddress(address, 7)
             .allowFamily(OsConstants.AF_INET)
             .setMtu(MAX_PACKET_SIZE)
+            .setBlocking(true)
         if (dns.size > 0) {
             builder.addDnsServer(address)
             for (d in dns) {
@@ -159,17 +160,12 @@ class YggdrasilTunService : VpnService() {
     }
 
     private fun readPacketsFromTun(yggConduitEndpoint: ConduitEndpoint, buffer: ByteArray) {
-        // Read the outgoing packet from the input stream.
-         try{
-            val length = tunInputStream!!.read(buffer)
-            if (length > 0) {
-                val byteBuffer = ByteBuffer.allocate(length)
-                byteBuffer.put(buffer, 0, length)
-                yggConduitEndpoint.send(byteBuffer.array())
-            } else {
-                Thread.sleep(10)
-            }
-        }catch(e: IOException){
+        if (tunInputStream == null) return
+        try {
+            // Read the outgoing packet from the input stream.
+            val length = tunInputStream?.read(buffer) ?: 1
+            yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
+        } catch (e: IOException) {
             e.printStackTrace()
         }
     }
