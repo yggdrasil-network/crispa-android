@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
                     // No services have actually been discovered yet, so this method
                     // can often be left blank.  Code for peer discovery goes in the
                     // onReceive method, detailed below.
-                    showToast("discover peers success")
+                    //showToast("discover peers success")
                 }
 
                 override fun onFailure(reasonCode: Int) {
@@ -383,11 +383,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateThisDevice(wifiP2pDevice: WifiP2pDevice) {
-        showToast("update device:"+wifiP2pDevice.deviceName+" address:"+wifiP2pDevice.deviceAddress)
+        //showToast("update device:"+wifiP2pDevice.deviceName+" address:"+wifiP2pDevice.deviceAddress)
     }
 
     private fun setIsWifiP2pEnabled(b: Boolean) {
-        showToast("WifiP2pEnabled="+b)
+        //showToast("WifiP2pEnabled="+b)
     }
 
     /** register the BroadcastReceiver with the intent values to be matched  */
@@ -413,7 +413,7 @@ class MainActivity : AppCompatActivity() {
             // If an AdapterView is backed by this data, notify it // of the change. For instance, if you have a ListView of available // peers, trigger an update.
             //((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged(); if (peers.size() == 0) { Log.d(WiFiDirectActivity.TAG, "No devices found"); return; } }
             //just show message
-            showToast("available peers:"+this@MainActivity.wirelessPeers.size)
+            //showToast("available peers:"+this@MainActivity.wirelessPeers.size)
         }
 
     }

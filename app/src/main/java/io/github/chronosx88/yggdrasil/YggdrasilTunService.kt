@@ -1,7 +1,10 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
@@ -17,6 +20,7 @@ import kotlinx.coroutines.*
 import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
+import java.net.Inet6Address
 import java.nio.ByteBuffer
 
 
@@ -63,7 +67,6 @@ class YggdrasilTunService : VpnService() {
     private fun setupIOStreams(dns: MutableSet<DNSInfo>){
         address = ygg.addressString
         var builder = Builder()
-            .addAddress(address, 7)
             .allowFamily(OsConstants.AF_INET)
             .setMtu(MAX_PACKET_SIZE)
         if (dns.size > 0) {
@@ -71,6 +74,12 @@ class YggdrasilTunService : VpnService() {
             for (d in dns) {
                 builder.addDnsServer(d.address)
             }
+        }
+        /*
+        fix for DNS unavailability
+         */
+        if(!hasIpv6DefaultRoute()){
+            builder.addRoute("::",0)
         }
         if(tunInterface!=null){
             tunInterface!!.close()
@@ -192,5 +201,21 @@ class YggdrasilTunService : VpnService() {
     override fun onDestroy() {
         super.onDestroy()
         stopSelf()
+    }
+
+    private fun hasIpv6DefaultRoute(): Boolean {
+        val cm =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networks = cm.allNetworks
+        for (network in networks) {
+            val linkProperties = cm.getLinkProperties(network)
+            val routes = linkProperties.routes
+            for (route in routes) {
+                if (route.isDefaultRoute && route.gateway is Inet6Address) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }
