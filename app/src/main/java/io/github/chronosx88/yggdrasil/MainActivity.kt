@@ -5,7 +5,6 @@ import android.app.ActivityManager
 import android.content.*
 import android.net.VpnService
 import android.net.wifi.p2p.WifiP2pDevice
-import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -28,6 +27,11 @@ import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializePee
 class MainActivity : AppCompatActivity() {
 
     companion object {
+        const val STATIC_IP = "STATIC_IP"
+        const val signingPrivateKey = "signingPrivateKey"
+        const val signingPublicKey = "signingPublicKey"
+        const val encryptionPrivateKey = "encryptionPrivateKey"
+        const val encryptionPublicKey = "encryptionPublicKey"
         const val COMMAND = "COMMAND"
         const val STOP = "STOP"
         const val START = "START"
@@ -57,9 +61,6 @@ class MainActivity : AppCompatActivity() {
     private var currentPeers = setOf<PeerInfo>()
     private var currentDNS = setOf<DNSInfo>()
 
-    private val wirelessPeers = mutableListOf<WifiP2pDevice>()
-    private val intentFilter = IntentFilter()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -67,9 +68,9 @@ class MainActivity : AppCompatActivity() {
         isStarted = isYggServiceRunning(this)
         val switchOn = findViewById<Switch>(R.id.switchOn)
         switchOn.isChecked = isStarted
-        val wifiDirect = findViewById<Switch>(R.id.wifiDirect)
+
         switchOn.setOnCheckedChangeListener { _, isChecked ->
-            if(currentPeers.isEmpty() && !wifiDirect.isChecked){
+            if(currentPeers.isEmpty()){
                 switchOn.isChecked = false
                 return@setOnCheckedChangeListener
             }
@@ -85,9 +86,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
+        val wifiDirect = findViewById<Switch>(R.id.staticIP)
         wifiDirect.setOnCheckedChangeListener { _, isChecked ->
+            if(isChecked){
 
+            }
         }
 
         val peersListView = findViewById<ListView>(R.id.peers)
@@ -187,6 +190,8 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra(COMMAND, START)
             intent.putStringArrayListExtra(PEERS, serializePeerInfoSet2StringList(currentPeers))
             intent.putStringArrayListExtra(DNS, serializeDNSInfoSet2StringList(currentDNS))
+            intent.putExtra(STATIC_IP, findViewById<Switch>(R.id.staticIP).isChecked)
+
             startService(intent)
         }
         if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_CANCELED){

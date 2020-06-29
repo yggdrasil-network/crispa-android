@@ -4,11 +4,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.Network
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import android.util.Log
+import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import dummy.ConduitEndpoint
 import io.github.chronosx88.yggdrasil.models.DNSInfo
@@ -21,8 +21,6 @@ import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
 import java.net.Inet6Address
-import java.nio.ByteBuffer
-import kotlin.concurrent.thread
 
 
 class YggdrasilTunService : VpnService() {
@@ -52,9 +50,10 @@ class YggdrasilTunService : VpnService() {
             MainActivity.START ->{
                 val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
                 val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
+                val staticIP: Boolean = intent.getBooleanExtra(MainActivity.STATIC_IP, false)
                 val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
                 ygg = Yggdrasil()
-                setupTunInterface(pi, peers, dns)
+                setupTunInterface(pi, peers, dns, staticIP)
             }
             MainActivity.UPDATE_DNS ->{
                 val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
@@ -97,13 +96,15 @@ class YggdrasilTunService : VpnService() {
     private fun setupTunInterface(
         pi: PendingIntent?,
         peers: Set<PeerInfo>,
-        dns: MutableSet<DNSInfo>
+        dns: MutableSet<DNSInfo>,
+        staticIP: Boolean
     ) {
         pi!!.send(MainActivity.STATUS_START)
         var configJson = Mobile.generateConfigJSON()
         val gson = Gson()
         var config = gson.fromJson(String(configJson), Map::class.java).toMutableMap()
-        config = fixConfig(config, peers)
+        config = fixConfig(config, peers, staticIP)
+
         configJson = gson.toJson(config).toByteArray()
 
         var yggConduitEndpoint = ygg.startJSON(configJson)
@@ -128,7 +129,11 @@ class YggdrasilTunService : VpnService() {
         pi.send(this, MainActivity.STATUS_FINISH, intent)
     }
 
-    private fun fixConfig(config: MutableMap<Any?, Any?>, peers: Set<PeerInfo>): MutableMap<Any?, Any?> {
+    private fun fixConfig(
+        config: MutableMap<Any?, Any?>,
+        peers: Set<PeerInfo>,
+        staticIP: Boolean
+    ): MutableMap<Any?, Any?> {
 
         val whiteList = arrayListOf<String>()
         whiteList.add("")
@@ -138,6 +143,27 @@ class YggdrasilTunService : VpnService() {
         config["Listen"] = ""
         config["AdminListen"] = "tcp://localhost:9001"
         config["IfName"] = "tun0"
+        if(staticIP) {
+            val preferences =
+                PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+            if(preferences.getString(MainActivity.signingPrivateKey, null)==null) {
+                val encryptionPublicKey = config["EncryptionPublicKey"].toString()
+                val encryptionPrivateKey = config["EncryptionPrivateKey"].toString()
+                val signingPublicKey = config["SigningPublicKey"].toString()
+                val signingPrivateKey = config["SigningPrivateKey"].toString()
+                preferences.edit()
+                    .putString(MainActivity.signingPrivateKey, signingPrivateKey)
+                    .putString(MainActivity.signingPublicKey, signingPublicKey)
+                    .putString(MainActivity.encryptionPrivateKey, encryptionPrivateKey)
+                    .putString(MainActivity.encryptionPublicKey, encryptionPublicKey).apply()
+            } else {
+                config["signingPrivateKey"] = preferences.getString(MainActivity.signingPrivateKey, null)
+                config["signingPublicKey"] = preferences.getString(MainActivity.signingPublicKey, null)
+                config["encryptionPrivateKey"] = preferences.getString(MainActivity.encryptionPrivateKey, null)
+                config["encryptionPublicKey"] = preferences.getString(MainActivity.encryptionPublicKey, null)
+            }
+        }
+
         //config["EncryptionPublicKey"] = "b15633cf66e63a04f03e9d1a5b2ac6411af819cde9e74175cf574d5599b1296c"
         //config["EncryptionPrivateKey"] = "a39e2da3ccbb5afc3854574a2e3823e881d2d720754d6fdc877f57b252d3b521"
         //config["SigningPublicKey"] = "4f248483c094aea370fba86f1630ba5099cb230aa1337ab6ef6ff0b132be2c2b"
