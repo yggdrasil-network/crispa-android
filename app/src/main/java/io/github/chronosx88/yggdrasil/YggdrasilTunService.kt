@@ -22,6 +22,7 @@ import mobile.Yggdrasil
 import java.io.*
 import java.net.Inet6Address
 import java.nio.ByteBuffer
+import kotlin.concurrent.thread
 
 
 class YggdrasilTunService : VpnService() {
@@ -29,8 +30,8 @@ class YggdrasilTunService : VpnService() {
     private lateinit var ygg: Yggdrasil
     private var isClosed = false
 
-    /** Maximum packet size is constrained by the MTU, which is given as a signed short.  */
-    private val MAX_PACKET_SIZE = Short.MAX_VALUE.toInt()
+    /** Maximum packet size is constrained by the MTU, which is given as a signed short - 256  */
+    private val MAX_PACKET_SIZE = Short.MAX_VALUE-256
 
     companion object {
         private const val TAG = "Yggdrasil-service"
@@ -159,17 +160,15 @@ class YggdrasilTunService : VpnService() {
     }
 
     private fun readPacketsFromTun(yggConduitEndpoint: ConduitEndpoint, buffer: ByteArray) {
-        // Read the outgoing packet from the input stream.
-         try{
-            val length = tunInputStream!!.read(buffer)
-            if (length > 0) {
-                val byteBuffer = ByteBuffer.allocate(length)
-                byteBuffer.put(buffer, 0, length)
-                yggConduitEndpoint.send(byteBuffer.array())
+        try {
+            // Read the outgoing packet from the input stream.
+            val length = tunInputStream?.read(buffer) ?: 1
+            if (length > 0){
+                yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
             } else {
-                Thread.sleep(10)
+                Thread.sleep(100)
             }
-        }catch(e: IOException){
+        } catch (e: IOException) {
             e.printStackTrace()
         }
     }
@@ -178,8 +177,8 @@ class YggdrasilTunService : VpnService() {
         val buffer = yggConduitEndpoint.recv()
         if(buffer!=null) {
             try {
-                tunOutputStream!!.write(buffer)
-            }catch(e: IOException){
+                tunOutputStream?.write(buffer)
+            } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
@@ -187,11 +186,12 @@ class YggdrasilTunService : VpnService() {
 
     private fun stopVpn(pi: PendingIntent?) {
         isClosed = true;
-        scope!!.coroutineContext.cancelChildren()
+
         tunInputStream!!.close()
         tunOutputStream!!.close()
         tunInterface!!.close()
         tunInterface = null
+        scope!!.coroutineContext.cancelChildren()
         Log.d(TAG,"Stop is running from service")
         ygg.stop()
         val intent: Intent = Intent()
