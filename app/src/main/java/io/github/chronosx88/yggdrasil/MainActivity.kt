@@ -2,9 +2,11 @@ package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
 import android.app.ActivityManager
-import android.content.*
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.net.VpnService
-import android.net.wifi.p2p.WifiP2pDevice
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -85,18 +87,24 @@ class MainActivity : AppCompatActivity() {
                 stopVpn()
             }
         }
-
-        val wifiDirect = findViewById<Switch>(R.id.staticIP)
-        wifiDirect.setOnCheckedChangeListener { _, isChecked ->
+        //save to shared preferences
+        val preferences =
+            PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+        val staticIP = findViewById<Switch>(R.id.staticIP)
+        staticIP.isChecked =
+            preferences.getString(STATIC_IP, null) != null
+        staticIP.setOnCheckedChangeListener { _, isChecked ->
             if(isChecked){
-
+                preferences.edit()
+                    .putString(STATIC_IP,STATIC_IP).apply()
+            } else {
+                preferences.edit()
+                    .putString(STATIC_IP,null).apply()
             }
         }
 
         val peersListView = findViewById<ListView>(R.id.peers)
-        //save to shared preferences
-        val preferences =
-            PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+
         currentPeers = deserializeStringSet2PeerInfoSet(preferences.getStringSet(CURRENT_PEERS, HashSet())!!)
         val adapter = PeerInfoListAdapter(this, currentPeers.sortedWith(compareBy { it.ping }))
         peersListView.adapter = adapter
@@ -141,6 +149,7 @@ class MainActivity : AppCompatActivity() {
             ipLayout.visibility = View.VISIBLE
             findViewById<TextView>(R.id.ip).text = address
         }
+
     }
 
     private fun stopVpn(){
@@ -285,6 +294,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return false
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        val preferences =
+            PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+        findViewById<Switch>(R.id.staticIP).isChecked =
+            preferences.getString(STATIC_IP, null) != null
     }
 
 }

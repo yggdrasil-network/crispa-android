@@ -146,7 +146,7 @@ class YggdrasilTunService : VpnService() {
         if(staticIP) {
             val preferences =
                 PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-            if(preferences.getString(MainActivity.signingPrivateKey, null)==null) {
+            if(preferences.getString(MainActivity.STATIC_IP, null)==null) {
                 val encryptionPublicKey = config["EncryptionPublicKey"].toString()
                 val encryptionPrivateKey = config["EncryptionPrivateKey"].toString()
                 val signingPublicKey = config["SigningPublicKey"].toString()
@@ -155,19 +155,21 @@ class YggdrasilTunService : VpnService() {
                     .putString(MainActivity.signingPrivateKey, signingPrivateKey)
                     .putString(MainActivity.signingPublicKey, signingPublicKey)
                     .putString(MainActivity.encryptionPrivateKey, encryptionPrivateKey)
-                    .putString(MainActivity.encryptionPublicKey, encryptionPublicKey).apply()
+                    .putString(MainActivity.encryptionPublicKey, encryptionPublicKey)
+                    .putString(MainActivity.STATIC_IP,MainActivity.STATIC_IP).apply()
             } else {
-                config["signingPrivateKey"] = preferences.getString(MainActivity.signingPrivateKey, null)
-                config["signingPublicKey"] = preferences.getString(MainActivity.signingPublicKey, null)
-                config["encryptionPrivateKey"] = preferences.getString(MainActivity.encryptionPrivateKey, null)
-                config["encryptionPublicKey"] = preferences.getString(MainActivity.encryptionPublicKey, null)
+                val signingPrivateKey = preferences.getString(MainActivity.signingPrivateKey, null)
+                val signingPublicKey = preferences.getString(MainActivity.signingPublicKey, null)
+                val encryptionPrivateKey = preferences.getString(MainActivity.encryptionPrivateKey, null)
+                val encryptionPublicKey = preferences.getString(MainActivity.encryptionPublicKey, null)
+
+                config["SigningPrivateKey"] = signingPrivateKey
+                config["SigningPublicKey"] = signingPublicKey
+                config["EncryptionPrivateKey"] = encryptionPrivateKey
+                config["EncryptionPublicKey"] = encryptionPublicKey
             }
         }
 
-        //config["EncryptionPublicKey"] = "b15633cf66e63a04f03e9d1a5b2ac6411af819cde9e74175cf574d5599b1296c"
-        //config["EncryptionPrivateKey"] = "a39e2da3ccbb5afc3854574a2e3823e881d2d720754d6fdc877f57b252d3b521"
-        //config["SigningPublicKey"] = "4f248483c094aea370fba86f1630ba5099cb230aa1337ab6ef6ff0b132be2c2b"
-        //config["SigningPrivateKey"] = "e4d56eb2e15e25d9098731e39d661a80c523f31d38b71cbd0ad25a5cde745eac4f248483c094aea370fba86f1630ba5099cb230aa1337ab6ef6ff0b132be2c2b"
         (config["SessionFirewall"] as MutableMap<Any, Any>)["Enable"] = false
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromDirect"] = true
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromRemote"] = true
