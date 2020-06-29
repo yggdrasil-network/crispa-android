@@ -80,7 +80,7 @@ class YggdrasilTunService : VpnService() {
         fix for DNS unavailability
          */
         if(!hasIpv6DefaultRoute()){
-            builder.addRoute("::",0)
+            builder.addRoute("2000::",3)
         }
         if(tunInterface!=null){
             tunInterface!!.close()
