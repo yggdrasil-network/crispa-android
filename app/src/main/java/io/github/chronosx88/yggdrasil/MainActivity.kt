@@ -72,10 +72,6 @@ class MainActivity : AppCompatActivity() {
         switchOn.isChecked = isStarted
 
         switchOn.setOnCheckedChangeListener { _, isChecked ->
-            if(currentPeers.isEmpty()){
-                switchOn.isChecked = false
-                return@setOnCheckedChangeListener
-            }
             if(isCancelled){
                 switchOn.isChecked = false
                 isCancelled = false
