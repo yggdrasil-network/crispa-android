@@ -29,7 +29,7 @@ import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializePee
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        const val STATIC_IP = "STATIC_IP"
+        const val STATIC_IP = "STATIC_IP_FLAG"
         const val signingPrivateKey = "signingPrivateKey"
         const val signingPublicKey = "signingPublicKey"
         const val encryptionPrivateKey = "encryptionPrivateKey"
@@ -89,16 +89,6 @@ class MainActivity : AppCompatActivity() {
         val staticIP = findViewById<Switch>(R.id.staticIP)
         staticIP.isChecked =
             preferences.getString(STATIC_IP, null) != null
-        staticIP.setOnCheckedChangeListener { _, isChecked ->
-            if(isChecked){
-                preferences.edit()
-                    .putString(STATIC_IP,STATIC_IP).apply()
-            } else {
-                preferences.edit()
-                    .putString(STATIC_IP,null).apply()
-            }
-        }
-
         val peersListView = findViewById<ListView>(R.id.peers)
 
         currentPeers = deserializeStringSet2PeerInfoSet(preferences.getStringSet(CURRENT_PEERS, HashSet())!!)
