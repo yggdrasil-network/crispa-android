@@ -71,10 +71,10 @@ class DNSListActivity : AppCompatActivity() {
                     }
                     var ping = ping(dns.address, 53)
                     dns.ping = ping
-                    adapter.addItem(dns)
                     runOnUiThread(
                         Runnable
                         {
+                            adapter.addItem(dns)
                             adapter.sort()
                             isLoading = false
                         }

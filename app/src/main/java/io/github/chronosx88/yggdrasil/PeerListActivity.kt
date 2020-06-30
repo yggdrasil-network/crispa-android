@@ -93,9 +93,9 @@ class PeerListActivity : AppCompatActivity() {
                                         }
                                         var ping = ping(address, url.port)
                                         peerInfo.ping = ping
-                                        adapter.addItem(peerInfo)
-                                        if(adapter.count % 5 == 0) {
-                                            withContext(Dispatchers.Main) {
+                                        withContext(Dispatchers.Main) {
+                                            adapter.addItem(peerInfo)
+                                            if(adapter.count % 5 == 0) {
                                                 adapter.sort()
                                             }
                                         }
