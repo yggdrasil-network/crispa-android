@@ -38,7 +38,7 @@ class SelectDNSInfoListAdapter(
             dnsInfoHolder.checkbox = listItem.findViewById(R.id.checkbox) as CheckBox
             dnsInfoHolder.countryFlag = listItem.findViewById(R.id.countryFlag) as ImageView
             dnsInfoHolder.dnsInfoText = listItem.findViewById(R.id.hostInfoText) as TextView
-            dnsInfoHolder.ping = listItem.findViewById(R.id.ping) as TextView
+            dnsInfoHolder.ping = listItem.findViewById(R.id.frame) as TextView
             listItem.tag = dnsInfoHolder
         } else {
             dnsInfoHolder = listItem.tag as DNSInfoHolder
