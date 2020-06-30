@@ -1,13 +1,19 @@
 package io.github.chronosx88.yggdrasil
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.VpnService
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import dummy.ConduitEndpoint
@@ -40,12 +46,22 @@ class YggdrasilTunService : VpnService() {
     private var scope: CoroutineScope? = null
     private var address: String? = null
 
+    private var mNotificationManager: NotificationManager? = null
+
+    private val FOREGROUND_ID = 1338
+
+    override fun onCreate() {
+        super.onCreate()
+        mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         when(intent?.getStringExtra(MainActivity.COMMAND)){
             MainActivity.STOP ->{
                 val pi: PendingIntent? = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
                 stopVpn(pi)
+                startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service stopped"))
             }
             MainActivity.START ->{
                 val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
@@ -54,6 +70,7 @@ class YggdrasilTunService : VpnService() {
                 val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
                 ygg = Yggdrasil()
                 setupTunInterface(pi, peers, dns, staticIP)
+                startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service started"))
             }
             MainActivity.UPDATE_DNS ->{
                 val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
@@ -61,7 +78,7 @@ class YggdrasilTunService : VpnService() {
             }
         }
 
-        return super.onStartCommand(intent, flags, startId)
+        return START_NOT_STICKY
     }
 
     private fun setupIOStreams(dns: MutableSet<DNSInfo>){
@@ -224,11 +241,13 @@ class YggdrasilTunService : VpnService() {
         ygg.stop()
         val intent: Intent = Intent()
         pi!!.send(this, MainActivity.STATUS_STOP, intent)
+        stopForeground(true)
         stopSelf()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        stopForeground(true)
         stopSelf()
     }
 
@@ -246,5 +265,34 @@ class YggdrasilTunService : VpnService() {
             }
         }
         return false
+    }
+
+    private fun foregroundNotification(text: String): Notification? {
+        val channelId =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                createNotificationChannel(TAG, "Yggdrasil service")
+            } else {
+                // If earlier version channel ID is not used
+                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
+                ""
+            }
+        val b = NotificationCompat.Builder(this, channelId)
+        b.setOngoing(true)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(text)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setTicker(text)
+        return b.build()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannel(channelId: String, channelName: String): String{
+        val chan = NotificationChannel(channelId,
+            channelName, NotificationManager.IMPORTANCE_NONE)
+        chan.lightColor = getColor(R.color.dark_10)
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        service.createNotificationChannel(chan)
+        return channelId
     }
 }
