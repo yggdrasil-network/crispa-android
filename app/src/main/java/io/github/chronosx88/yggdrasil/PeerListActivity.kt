@@ -3,10 +3,10 @@ package io.github.chronosx88.yggdrasil
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
+import android.view.*
 import android.widget.Button
 import android.widget.ListView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -52,8 +52,7 @@ class PeerListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_peer_list)
         setSupportActionBar(findViewById(R.id.toolbar))
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+            addNewPeer()
         }
         var extras = intent.extras
         var peerList = findViewById<ListView>(R.id.peerList)
@@ -115,6 +114,13 @@ class PeerListActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }
+    }
+
+    private fun addNewPeer() {
+        val view: View = LayoutInflater.from(this).inflate(R.layout.new_peer_dialog, null)
+        val ab: AlertDialog.Builder = AlertDialog.Builder(this)
+        ab.setCancelable(true).setView(view)
+        ab.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

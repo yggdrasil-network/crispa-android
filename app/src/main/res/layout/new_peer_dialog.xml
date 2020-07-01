@@ -1,0 +1,69 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        xmlns:mask="http://schemas.android.com/tools"
+        android:padding="10dp"
+        android:background="@color/grey">
+
+    <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/schema"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_margin="10dp"
+            app:boxBackgroundMode="none"
+            android:background="@drawable/edit_text_rounded_corner"
+            android:textColorHint="@color/white"
+            style="@style/EditText.OutlinedBox">
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Schema"
+                android:textColor="@color/white"
+                android:inputType="text"
+                />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/ip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/schema"
+            app:layout_constraintTop_toBottomOf="@+id/schema"
+            android:layout_margin="10dp"
+            app:boxBackgroundMode="none"
+            android:background="@drawable/edit_text_rounded_corner"
+            android:textColorHint="@color/white"
+            style="@style/EditText.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:digits="0123456789."
+                android:hint="IP address"
+                android:inputType="number"
+                mask:mask="###.###.###.###" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/port"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/schema"
+            app:layout_constraintTop_toBottomOf="@+id/ip"
+            android:layout_margin="10dp"
+            app:boxBackgroundMode="none"
+            android:background="@drawable/edit_text_rounded_corner"
+            android:textColorHint="@color/white"
+            style="@style/EditText.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:digits="0123456789"
+                android:hint="Port"
+                android:inputType="number" />
+    </com.google.android.material.textfield.TextInputLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

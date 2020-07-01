@@ -191,11 +191,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == VPN_REQUEST_CODE && resultCode== Activity.RESULT_OK){
-            /*
-            if(currentPeers.isEmpty()){
-                showToast("No peers selected!")
-                return
-            }*/
+
             val intent = Intent(this, YggdrasilTunService::class.java)
             val TASK_CODE = 100
             val pi = createPendingResult(TASK_CODE, intent, 0)
@@ -214,29 +210,25 @@ class MainActivity : AppCompatActivity() {
             if(data!!.extras!=null){
                 var currentPeers = data.extras!!.getStringArrayList(PEER_LIST)
                 /*WiFi Direct test. need peer empty list*/
-                //if(currentPeers==null || currentPeers.size==0){
-                //    showToast("No peers selected!")
-                //} else {
-                    this.currentPeers = deserializeStringList2PeerInfoSet(currentPeers)
-                    val adapter = PeerInfoListAdapter(this, this.currentPeers.sortedWith(compareBy { it.ping }))
-                    val listView = findViewById<ListView>(R.id.peers)
-                    listView.adapter = adapter
+                this.currentPeers = deserializeStringList2PeerInfoSet(currentPeers)
+                val adapter = PeerInfoListAdapter(this, this.currentPeers.sortedWith(compareBy { it.ping }))
+                val listView = findViewById<ListView>(R.id.peers)
+                listView.adapter = adapter
 
-                    //save to shared preferences
-                    val preferences =
-                        PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-                    preferences.edit().putStringSet(CURRENT_PEERS, HashSet(currentPeers)).apply()
-                    if(isStarted){
-                        //TODO implement UpdateConfig method in native interface and apply peer changes
-                        stopVpn()
-                        val i = baseContext.packageManager
-                            .getLaunchIntentForPackage(baseContext.packageName)
-                        i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        i.putExtra(START_VPN, true)
-                        startActivity(i)
-                    }
-                //}
+                //save to shared preferences
+                val preferences =
+                    PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+                preferences.edit().putStringSet(CURRENT_PEERS, HashSet(currentPeers)).apply()
+                if(isStarted){
+                    //TODO implement UpdateConfig method in native interface and apply peer changes
+                    stopVpn()
+                    val i = baseContext.packageManager
+                        .getLaunchIntentForPackage(baseContext.packageName)
+                    i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    i.putExtra(START_VPN, true)
+                    startActivity(i)
+                }
             }
         }
 

@@ -1,24 +1,25 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.view.Gravity
-import android.view.Menu
-import android.view.MenuItem
+import android.text.Html
+import android.view.*
 import android.widget.Button
 import android.widget.ListView
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.config.SelectDNSInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.ping
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializeDNSInfoSet2StringList
-import kotlinx.coroutines.*
-import java.net.*
+import kotlinx.coroutines.Runnable
+import java.net.InetAddress
 import kotlin.concurrent.thread
 
 
@@ -49,8 +50,7 @@ class DNSListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_dns_list)
         setSupportActionBar(findViewById(R.id.toolbar))
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+
         }
         var extras = intent.extras
         var dnsList = findViewById<ListView>(R.id.dnsList)
