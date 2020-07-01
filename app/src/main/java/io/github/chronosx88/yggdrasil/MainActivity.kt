@@ -2,10 +2,7 @@ package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
 import android.app.ActivityManager
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.net.VpnService
 import android.os.Bundle
 import android.util.Log
@@ -18,17 +15,26 @@ import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.config.DNSInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.PeerInfoListAdapter
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializePeerStringList2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringSet2DNSInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringSet2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializeDNSInfoSet2StringList
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializePeerInfoSet2StringList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.InetAddress
+import kotlin.concurrent.thread
 
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
+        const val STATUS_PEERS_UPDATE = 12
+        const val MESH_PEERS = "MESH_PEERS"
         const val STATIC_IP = "STATIC_IP_FLAG"
         const val signingPrivateKey = "signingPrivateKey"
         const val signingPublicKey = "signingPublicKey"
@@ -38,6 +44,7 @@ class MainActivity : AppCompatActivity() {
         const val STOP = "STOP"
         const val START = "START"
         const val UPDATE_DNS = "UPDATE_DNS"
+        const val UPDATE_PEERS = "UPDATE_PEERS"
         const val PARAM_PINTENT = "pendingIntent"
         const val STATUS_START = 7
         const val STATUS_FINISH = 8
@@ -49,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         const val DNS_LIST_CODE = 2000
         const val PEER_LIST = "PEERS_LIST"
         const val DNS_LIST = "DNS_LIST"
-        const val CURRENT_PEERS = "CURRENT_PEERS_v1.2"
+        const val CURRENT_PEERS = "CURRENT_PEERS_v1.2.1"
         const val CURRENT_DNS = "CURRENT_DNS_v1.2"
         const val START_VPN = "START_VPN"
         private const val TAG="Yggdrasil"
@@ -62,6 +69,7 @@ class MainActivity : AppCompatActivity() {
 
     private var currentPeers = setOf<PeerInfo>()
     private var currentDNS = setOf<DNSInfo>()
+    private var meshPeersReceiver: BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -169,6 +177,16 @@ class MainActivity : AppCompatActivity() {
         startService(intent)
     }
 
+    private fun updatePeers(){
+        Log.d(TAG,"Update Peers")
+        val intent = Intent(this, YggdrasilTunService::class.java)
+        val TASK_CODE = 100
+        val pi = createPendingResult(TASK_CODE, intent, 0)
+        intent.putExtra(PARAM_PINTENT, pi)
+        intent.putExtra(COMMAND, UPDATE_PEERS)
+        startService(intent)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -244,7 +262,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         when (resultCode) {
-            STATUS_START -> print("service started")
+            STATUS_START -> {
+                print("service started")
+                if(this.currentPeers.isEmpty()){
+                    //this is Mesh mode, send Peers update every 5 sec
+                    thread(start = true) {
+                        while(true) {
+                            Thread.sleep(5000)
+                            if(isStarted) {
+                                updatePeers()
+                            }
+                        }
+                    }
+                }
+            }
             STATUS_FINISH -> {
                 isStarted = true
                 val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
@@ -256,6 +287,23 @@ class MainActivity : AppCompatActivity() {
                 isStarted = false
                 val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
                 ipLayout.visibility = View.GONE
+            }
+            STATUS_PEERS_UPDATE ->{
+                if(data!!.extras!=null) {
+                    thread(start = true) {
+                        val meshPeers = deserializePeerStringList2PeerInfoSet(
+                            data.extras!!.getStringArrayList(MESH_PEERS)
+                        )
+                        val listView = findViewById<ListView>(R.id.peers)
+                        val adapter = PeerInfoListAdapter(
+                            this@MainActivity,
+                            meshPeers.sortedWith(compareBy { it.ping })
+                        )
+                        runOnUiThread {
+                            listView.adapter = adapter
+                        }
+                    }
+                }
             }
             else -> { // Note the block
 
@@ -288,6 +336,13 @@ class MainActivity : AppCompatActivity() {
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
         findViewById<Switch>(R.id.staticIP).isChecked =
             preferences.getString(STATIC_IP, null) != null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (meshPeersReceiver != null){
+            unregisterReceiver(meshPeersReceiver);
+        }
     }
 
 }

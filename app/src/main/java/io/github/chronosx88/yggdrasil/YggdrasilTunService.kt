@@ -16,9 +16,12 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import dummy.ConduitEndpoint
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
+import io.github.chronosx88.yggdrasil.models.config.Peer
+import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.convertPeer2PeerStringList
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.convertPeerInfoSet2PeerIdSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
@@ -27,6 +30,7 @@ import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
 import java.net.Inet6Address
+import kotlin.concurrent.thread
 
 
 class YggdrasilTunService : VpnService() {
@@ -56,10 +60,9 @@ class YggdrasilTunService : VpnService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
+        val pi: PendingIntent? = intent?.getParcelableExtra(MainActivity.PARAM_PINTENT)
         when(intent?.getStringExtra(MainActivity.COMMAND)){
             MainActivity.STOP ->{
-                val pi: PendingIntent? = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
                 stopVpn(pi)
                 startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service stopped"))
             }
@@ -67,7 +70,6 @@ class YggdrasilTunService : VpnService() {
                 val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
                 val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
                 val staticIP: Boolean = intent.getBooleanExtra(MainActivity.STATIC_IP, false)
-                val pi: PendingIntent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT)
                 ygg = Yggdrasil()
                 setupTunInterface(pi, peers, dns, staticIP)
                 startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service started"))
@@ -75,6 +77,9 @@ class YggdrasilTunService : VpnService() {
             MainActivity.UPDATE_DNS ->{
                 val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
                 setupIOStreams(dns)
+            }
+            MainActivity.UPDATE_PEERS ->{
+                sendMeshPeerStatus(pi)
             }
         }
 
@@ -141,9 +146,20 @@ class YggdrasilTunService : VpnService() {
                 writePacketsToTun(yggConduitEndpoint)
             }
         }
-
         val intent: Intent = Intent().putExtra(MainActivity.IPv6, address)
         pi.send(this, MainActivity.STATUS_FINISH, intent)
+    }
+
+    private fun sendMeshPeerStatus(pi: PendingIntent?){
+        class Token : TypeToken<List<Peer>>()
+        var add = ygg.addressString
+        var meshPeers: List<Peer> = gson.fromJson(ygg.peersJSON, Token().type)
+        val intent: Intent = Intent().putStringArrayListExtra(
+            MainActivity.MESH_PEERS,
+            convertPeer2PeerStringList(meshPeers)
+        );
+        pi?.send(this, MainActivity.STATUS_PEERS_UPDATE, intent)
+
     }
 
     private fun fixConfig(
@@ -231,7 +247,6 @@ class YggdrasilTunService : VpnService() {
 
     private fun stopVpn(pi: PendingIntent?) {
         isClosed = true;
-
         tunInputStream!!.close()
         tunOutputStream!!.close()
         tunInterface!!.close()

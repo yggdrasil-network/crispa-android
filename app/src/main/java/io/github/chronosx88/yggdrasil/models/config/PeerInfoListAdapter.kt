@@ -31,7 +31,11 @@ class PeerInfoListAdapter(
             peerInfoHolder = listItem.tag as PeerInfoHolder
         }
         val currentPeer = allPeers[position]
-        peerInfoHolder.countryFlag.setImageResource(currentPeer.getCountry(mContext)!!.flagID)
+        if(currentPeer.isMeshPeer){
+            //TODO set mesh icon
+        } else {
+            peerInfoHolder.countryFlag.setImageResource(currentPeer.getCountry(mContext)!!.flagID)
+        }
         peerInfoHolder.peerInfoText.text = currentPeer.toString()
         return listItem!!
     }

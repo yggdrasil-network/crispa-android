@@ -99,5 +99,39 @@ class Utils {
             return out
         }
 
+        @JvmStatic
+        fun convertPeer2PeerStringList(list: List<Peer>): ArrayList<String> {
+            var out = ArrayList<String>()
+            var gson = Gson()
+            for(p in list) {
+                out.add(gson.toJson(p))
+            }
+            return out
+        }
+
+        @JvmStatic
+        fun deserializePeerStringList2PeerInfoSet(list: List<String>?): MutableSet<PeerInfo> {
+            var gson = Gson()
+            var out = mutableSetOf<PeerInfo>()
+            if (list != null) {
+                for(s in list) {
+                    var p = gson.fromJson(s, Peer::class.java)
+                    if(p.endpoint == "(self)"){
+                        out.add(PeerInfo(p.protocol, InetAddress.getByName("localhost"), p.port, null, true))
+                    } else {
+                        out.add(
+                            PeerInfo(
+                                p.protocol,
+                                InetAddress.getByName(p.endpoint),
+                                p.port,
+                                null,
+                                true
+                            )
+                        )
+                    }
+                }
+            }
+            return out
+        }
     }
 }
