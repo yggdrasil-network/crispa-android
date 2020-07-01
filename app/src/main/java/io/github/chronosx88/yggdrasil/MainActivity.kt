@@ -269,7 +269,7 @@ class MainActivity : AppCompatActivity() {
                     thread(start = true) {
                         while(true) {
                             Thread.sleep(5000)
-                            if(isStarted) {
+                            if(isStarted && this.currentPeers.isEmpty()) {
                                 updatePeers()
                             }
                         }
@@ -297,7 +297,7 @@ class MainActivity : AppCompatActivity() {
                         val listView = findViewById<ListView>(R.id.peers)
                         val adapter = PeerInfoListAdapter(
                             this@MainActivity,
-                            meshPeers.sortedWith(compareBy { it.ping })
+                            meshPeers.filter { it.schema!="self" }.sortedWith(compareBy { it.ping })
                         )
                         runOnUiThread {
                             listView.adapter = adapter

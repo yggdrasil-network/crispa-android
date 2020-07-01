@@ -6,6 +6,7 @@ import io.github.chronosx88.yggdrasil.models.PeerInfo
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.URI
 
 class Utils {
 
@@ -119,11 +120,14 @@ class Utils {
                     if(p.endpoint == "(self)"){
                         out.add(PeerInfo(p.protocol, InetAddress.getByName("localhost"), p.port, null, true))
                     } else {
+                        var fixWlanPart = p.endpoint.substring(p.endpoint.indexOf('%'), p.endpoint.indexOf(']'))
+                        var fixedUrlString = p.endpoint.replace(fixWlanPart, "")
+                        var url = URI(fixedUrlString)
                         out.add(
                             PeerInfo(
-                                p.protocol,
-                                InetAddress.getByName(p.endpoint),
-                                p.port,
+                                url.scheme,
+                                InetAddress.getByName(url.host),
+                                url.port,
                                 null,
                                 true
                             )
