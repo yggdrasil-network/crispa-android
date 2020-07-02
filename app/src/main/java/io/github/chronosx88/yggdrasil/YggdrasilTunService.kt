@@ -37,7 +37,7 @@ class YggdrasilTunService : VpnService() {
     private var isClosed = false
 
     /** Maximum packet size is constrained by the MTU, which is given as a signed short - 256  */
-    private val MAX_PACKET_SIZE = 1500
+    private val MAX_PACKET_SIZE = 65535
 
     companion object {
         private const val TAG = "Yggdrasil-service"
@@ -86,6 +86,7 @@ class YggdrasilTunService : VpnService() {
 
     private fun setupIOStreams(dns: MutableSet<DNSInfo>){
         address = ygg.addressString
+
         var builder = Builder()
             .addAddress(address, 7)
             .allowFamily(OsConstants.AF_INET)
