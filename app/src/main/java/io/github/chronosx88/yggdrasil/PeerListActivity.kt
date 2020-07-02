@@ -2,14 +2,17 @@ package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.ListView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.hbb20.CCPCountry
@@ -25,7 +28,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.Type
-import java.net.*
+import java.net.InetAddress
+import java.net.URI
+import java.net.URL
 import java.nio.charset.Charset
 
 
@@ -118,6 +123,12 @@ class PeerListActivity : AppCompatActivity() {
 
     private fun addNewPeer() {
         val view: View = LayoutInflater.from(this).inflate(R.layout.new_peer_dialog, null)
+        val countryCode: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            this.resources.configuration.locales[0].country
+        } else {
+            this.resources.configuration.locale.country
+        }
+        view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp).setCountryForNameCode(countryCode)
         val ab: AlertDialog.Builder = AlertDialog.Builder(this)
         ab.setCancelable(true).setView(view)
         ab.show()

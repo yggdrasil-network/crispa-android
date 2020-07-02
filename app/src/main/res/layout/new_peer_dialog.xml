@@ -23,7 +23,7 @@
                 android:hint="Schema"
                 android:textColor="@color/white"
                 android:inputType="text"
-                />
+                android:textCursorDrawable="@null"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -42,9 +42,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:digits="0123456789."
-                android:hint="IP address"
+                android:hint="IP/domain"
                 android:inputType="number"
-                mask:mask="###.###.###.###" />
+                android:textColor="@color/white"
+                android:textCursorDrawable="@null"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -64,6 +65,38 @@
                 android:layout_height="wrap_content"
                 android:digits="0123456789"
                 android:hint="Port"
-                android:inputType="number" />
+                android:textColor="@color/white"
+                android:inputType="number"
+                android:textCursorDrawable="@null"/>
     </com.google.android.material.textfield.TextInputLayout>
+
+    <com.hbb20.CountryCodePicker
+            android:id="@+id/ccp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:gravity="center_vertical"
+            android:layout_margin="10dp"
+            app:ccp_contentColor="@color/white"
+            app:ccp_showFullName="true"
+            app:ccp_showPhoneCode="false"
+            app:ccp_showNameCode="false"
+            app:layout_constraintEnd_toEndOf="@+id/schema"
+            app:layout_constraintTop_toBottomOf="@+id/port"
+            android:background="@drawable/edit_text_rounded_corner"/>
+
+    <Button
+            android:id="@+id/add"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            app:layout_constraintEnd_toEndOf="@+id/schema"
+            app:layout_constraintTop_toBottomOf="@+id/ccp"
+            android:background="@drawable/button_selector"
+            app:backgroundTint="@null"
+            android:text="ADD"
+            android:textColor="@color/white"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
