@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="schemas">
+        <item>TCP</item>
+        <item>TLS</item>
+    </string-array>
+</resources>

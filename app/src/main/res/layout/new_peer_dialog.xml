@@ -2,7 +2,6 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        xmlns:mask="http://schemas.android.com/tools"
         android:padding="10dp"
         android:background="@color/grey">
 
@@ -18,12 +17,14 @@
             android:textColorHint="@color/white"
             style="@style/EditText.OutlinedBox">
         <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/schemaInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Schema"
                 android:textColor="@color/white"
                 android:inputType="text"
-                android:textCursorDrawable="@null"/>
+                android:textCursorDrawable="@null"
+                android:onClick="onClickSchemaList"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -39,6 +40,7 @@
             style="@style/EditText.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/ipInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:digits="0123456789."
@@ -61,6 +63,7 @@
             style="@style/EditText.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/portInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:digits="0123456789"

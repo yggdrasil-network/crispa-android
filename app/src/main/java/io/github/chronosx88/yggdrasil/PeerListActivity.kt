@@ -1,15 +1,15 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.widget.Button
 import android.widget.ListView
+import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -18,6 +18,7 @@ import com.google.gson.reflect.TypeToken
 import com.hbb20.CCPCountry
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.Status
+import io.github.chronosx88.yggdrasil.models.config.DropDownAdapter
 import io.github.chronosx88.yggdrasil.models.config.SelectPeerInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.ping
@@ -51,6 +52,9 @@ class PeerListActivity : AppCompatActivity() {
     }
 
     var isLoading = true;
+
+    var popupAddress: PopupWindow? = null
+    var adapter: DropDownAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,10 +132,56 @@ class PeerListActivity : AppCompatActivity() {
         } else {
             this.resources.configuration.locale.country
         }
+        var schemaInput = view.findViewById<TextView>(R.id.schemaInput)
+        schemaInput.setOnFocusChangeListener { v, b ->
+            if(schemaInput.isFocused) {
+                val height = -1 * v.height +30
+                getAddressListPopup()?.showAsDropDown(v, -10, height)
+            }
+        }
+        getPopupWindow(R.layout.spinner_item, resources.getStringArray(R.array.schemas), schemaInput, getString(R.string.schema));
         view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp).setCountryForNameCode(countryCode)
         val ab: AlertDialog.Builder = AlertDialog.Builder(this)
         ab.setCancelable(true).setView(view)
         ab.show()
+    }
+
+    fun onClickSchemaList(v: View) {
+        val height = -1 * v.height +30
+        getAddressListPopup()?.showAsDropDown(v, -10, height)
+    }
+
+    private fun getAddressListPopup(): PopupWindow? {
+        return popupAddress
+    }
+
+    private fun getPopupWindow(
+        textViewResourceId: Int,
+        objects: Array<String>,
+        editText: TextView,
+        hint: String?
+    ): PopupWindow? {
+        // initialize a pop up window type
+        val popupWindow = PopupWindow(this)
+        // the drop down list is a list view
+        val listView = ListView(this)
+        listView.dividerHeight = 0
+        // set our adapter and pass our pop up window contents
+        adapter = DropDownAdapter(this, textViewResourceId, objects, popupWindow, editText)
+        listView.adapter = adapter
+        // set the item click listener
+        listView.onItemClickListener = adapter
+        // some other visual settings
+        popupWindow.isFocusable = true
+        //popupWindow.setWidth(400);
+        val display: Display =
+            (this.getSystemService(Context.WINDOW_SERVICE) as WindowManager).getDefaultDisplay()
+        popupWindow.width = display.getWidth() - 230
+        popupWindow.height = WindowManager.LayoutParams.WRAP_CONTENT
+        // set the list view as pop up window content
+        popupWindow.contentView = listView
+        popupAddress = popupWindow
+        return popupWindow
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
