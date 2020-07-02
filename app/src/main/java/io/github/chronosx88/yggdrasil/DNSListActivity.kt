@@ -1,15 +1,11 @@
 package io.github.chronosx88.yggdrasil
 
 import android.app.Activity
-import android.content.DialogInterface
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.text.Html
 import android.view.*
-import android.widget.Button
-import android.widget.ListView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -18,7 +14,7 @@ import io.github.chronosx88.yggdrasil.models.config.SelectDNSInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.ping
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializeDNSInfoSet2StringList
-import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.*
 import java.net.InetAddress
 import kotlin.concurrent.thread
 
@@ -50,7 +46,7 @@ class DNSListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_dns_list)
         setSupportActionBar(findViewById(R.id.toolbar))
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
-
+            addNewDNS()
         }
         var extras = intent.extras
         var dnsList = findViewById<ListView>(R.id.dnsList)
@@ -82,6 +78,43 @@ class DNSListActivity : AppCompatActivity() {
                 }
             } catch (e: Throwable) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    private fun addNewDNS() {
+        val view: View = LayoutInflater.from(this).inflate(R.layout.new_dns_dialog, null)
+        val countryCode: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            this.resources.configuration.locales[0].country
+        } else {
+            this.resources.configuration.locale.country
+        }
+
+        var ccp = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
+        ccp.setCountryForNameCode(countryCode)
+        val ab: AlertDialog.Builder = AlertDialog.Builder(this)
+        ab.setCancelable(true).setView(view)
+        var ad = ab.show()
+        var addButton = view.findViewById<Button>(R.id.add)
+        addButton.setOnClickListener{
+            var ipInput = view.findViewById<TextView>(R.id.ipInput)
+            var ccpInput = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
+            var ip = ipInput.text.toString().toLowerCase()
+            var ccp = ccpInput.selectedCountryNameCode
+            GlobalScope.launch {
+                var di = DNSInfo(InetAddress.getByName("["+ip+"]"), ccp, "User DNS")
+                try {
+                    var ping = ping(di.address, 53)
+                    di.ping = ping
+                } catch(e: Throwable){
+                    di.ping = Int.MAX_VALUE
+                }
+                withContext(Dispatchers.Main) {
+                    var selectAdapter = (findViewById<ListView>(R.id.peerList).adapter as SelectDNSInfoListAdapter)
+                    selectAdapter.addItem(0, di)
+                    selectAdapter.notifyDataSetChanged()
+                    ad.dismiss()
+                }
             }
         }
     }

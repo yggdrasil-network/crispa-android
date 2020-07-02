@@ -30,8 +30,6 @@ import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
 import java.net.Inet6Address
-import kotlin.concurrent.thread
-
 
 class YggdrasilTunService : VpnService() {
 
@@ -39,7 +37,7 @@ class YggdrasilTunService : VpnService() {
     private var isClosed = false
 
     /** Maximum packet size is constrained by the MTU, which is given as a signed short - 256  */
-    private val MAX_PACKET_SIZE = Short.MAX_VALUE-256
+    private val MAX_PACKET_SIZE = Short.MAX_VALUE/2
 
     companion object {
         private const val TAG = "Yggdrasil-service"

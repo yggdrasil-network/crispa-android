@@ -28,10 +28,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.lang.reflect.Type
 import java.net.InetAddress
-import java.net.SocketTimeoutException
 import java.net.URI
 import java.net.URL
 import java.nio.charset.Charset
@@ -55,7 +53,7 @@ class PeerListActivity : AppCompatActivity() {
 
     var isLoading = true;
 
-    var popupAddress: PopupWindow? = null
+    var popup: PopupWindow? = null
     var adapter: DropDownAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -181,7 +179,7 @@ class PeerListActivity : AppCompatActivity() {
     }
 
     private fun getAddressListPopup(): PopupWindow? {
-        return popupAddress
+        return popup
     }
 
     private fun getPopupWindow(
@@ -209,7 +207,7 @@ class PeerListActivity : AppCompatActivity() {
         popupWindow.height = WindowManager.LayoutParams.WRAP_CONTENT
         // set the list view as pop up window content
         popupWindow.contentView = listView
-        popupAddress = popupWindow
+        popup = popupWindow
         return popupWindow
     }
 

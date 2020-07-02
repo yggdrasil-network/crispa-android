@@ -78,6 +78,10 @@ class SelectDNSInfoListAdapter(
         allDNS.add(peerInfo)
     }
 
+    fun addItem(index: Int, peerInfo: DNSInfo){
+        allDNS.add(index, peerInfo)
+    }
+
     fun sort(){
         allDNS = ArrayList(allDNS.sortedWith(compareBy { it.ping }))
         this.notifyDataSetChanged()

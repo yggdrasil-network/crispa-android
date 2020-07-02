@@ -35,6 +35,6 @@
             app:elevation="6dp"
             app:fabSize="normal"
             app:srcCompat="@android:drawable/ic_input_add"
-            android:visibility="gone"/>
+            />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
