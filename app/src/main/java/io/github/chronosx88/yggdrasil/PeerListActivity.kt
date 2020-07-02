@@ -133,6 +133,7 @@ class PeerListActivity : AppCompatActivity() {
             this.resources.configuration.locale.country
         }
         var schemaInput = view.findViewById<TextView>(R.id.schemaInput)
+        schemaInput.showSoftInputOnFocus = false
         schemaInput.setOnFocusChangeListener { v, b ->
             if(schemaInput.isFocused) {
                 val height = -1 * v.height +30

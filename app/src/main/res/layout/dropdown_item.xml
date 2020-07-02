@@ -6,7 +6,7 @@
         android:paddingRight="15dp"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
-        android:background="@drawable/info_panel_rounded_corner">
+        android:background="@color/dark_10">
     <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -24,6 +24,7 @@
                 android:layout_height="wrap_content"
                 android:hint="Schema"
                 android:ellipsize="middle"
-                android:singleLine="true"/>
+                android:singleLine="true"
+                android:textIsSelectable="false"/>
     </LinearLayout>
 </RelativeLayout>
