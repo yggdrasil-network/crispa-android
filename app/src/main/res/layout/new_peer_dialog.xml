@@ -23,9 +23,7 @@
                 android:hint="Schema"
                 android:textColor="@color/white"
                 android:inputType="textNoSuggestions"
-                android:textCursorDrawable="@null"
-                android:onClick="onClickSchemaList"
-                />
+                android:textCursorDrawable="@null"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -49,7 +47,7 @@
                 android:inputType="textNoSuggestions"
                 android:textColor="@color/white"
                 android:textCursorDrawable="@null"
-                />
+                android:focusedByDefault="true"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout

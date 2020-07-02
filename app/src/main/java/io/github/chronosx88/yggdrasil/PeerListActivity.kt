@@ -133,12 +133,16 @@ class PeerListActivity : AppCompatActivity() {
             this.resources.configuration.locale.country
         }
         var schemaInput = view.findViewById<TextView>(R.id.schemaInput)
+        var ipInput = view.findViewById<TextView>(R.id.ipInput)
+        ipInput.requestFocus()
         schemaInput.showSoftInputOnFocus = false
         schemaInput.setOnFocusChangeListener { v, b ->
             if(schemaInput.isFocused) {
-                val height = -1 * v.height +30
-                getAddressListPopup()?.showAsDropDown(v, -10, height)
+                onClickSchemaList(v)
             }
+        }
+        schemaInput.setOnClickListener { v->
+            onClickSchemaList(v)
         }
         getPopupWindow(R.layout.spinner_item, resources.getStringArray(R.array.schemas), schemaInput, getString(R.string.schema));
         var ccp = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
@@ -148,7 +152,6 @@ class PeerListActivity : AppCompatActivity() {
         var ad = ab.show()
         var addButton = view.findViewById<Button>(R.id.add)
         addButton.setOnClickListener{
-            var ipInput = view.findViewById<TextView>(R.id.ipInput)
             var portInput = view.findViewById<TextView>(R.id.portInput)
             var ccpInput = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
             var schema = schemaInput.text.toString().toLowerCase()
@@ -175,7 +178,7 @@ class PeerListActivity : AppCompatActivity() {
 
     fun onClickSchemaList(v: View) {
         val height = -1 * v.height +30
-        getAddressListPopup()?.showAsDropDown(v, -10, height)
+        getAddressListPopup()?.showAsDropDown(v, -5, height)
     }
 
     private fun getAddressListPopup(): PopupWindow? {
@@ -203,7 +206,7 @@ class PeerListActivity : AppCompatActivity() {
         //popupWindow.setWidth(400);
         val display: Display =
             (this.getSystemService(Context.WINDOW_SERVICE) as WindowManager).getDefaultDisplay()
-        popupWindow.width = display.getWidth() - 230
+        popupWindow.width = 320
         popupWindow.height = WindowManager.LayoutParams.WRAP_CONTENT
         // set the list view as pop up window content
         popupWindow.contentView = listView
