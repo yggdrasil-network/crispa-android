@@ -2,4 +2,9 @@
     <string name="app_name">Yggdrasil</string>
     <string name="connect_button">Connect</string>
     <string name="disconnect_button">Disconnect</string>
+    <string name="switch_button_title">SwitchOn</string>
+    <string name="title_activity_peer_list">Edit peers</string>
+    <string name="title_activity_dns_list">Edit DNS</string>
+    <string name="address_copied">Address copied</string>
+    <string name="schema">Schema</string>
 </resources>
