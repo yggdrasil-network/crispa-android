@@ -81,6 +81,10 @@ class SelectPeerInfoListAdapter(
         allPeers.add(peerInfo)
     }
 
+    fun addItem(index: Int, peerInfo: PeerInfo){
+        allPeers.add(index, peerInfo)
+    }
+
     fun addAll(index: Int, peerInfo: ArrayList<PeerInfo>){
         currentPeers.addAll(peerInfo)
         allPeers.removeAll(peerInfo)

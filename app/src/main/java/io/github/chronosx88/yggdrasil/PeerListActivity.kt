@@ -28,8 +28,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.lang.reflect.Type
 import java.net.InetAddress
+import java.net.SocketTimeoutException
 import java.net.URI
 import java.net.URL
 import java.nio.charset.Charset
@@ -141,10 +143,36 @@ class PeerListActivity : AppCompatActivity() {
             }
         }
         getPopupWindow(R.layout.spinner_item, resources.getStringArray(R.array.schemas), schemaInput, getString(R.string.schema));
-        view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp).setCountryForNameCode(countryCode)
+        var ccp = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
+        ccp.setCountryForNameCode(countryCode)
         val ab: AlertDialog.Builder = AlertDialog.Builder(this)
         ab.setCancelable(true).setView(view)
-        ab.show()
+        var ad = ab.show()
+        var addButton = view.findViewById<Button>(R.id.add)
+        addButton.setOnClickListener{
+            var ipInput = view.findViewById<TextView>(R.id.ipInput)
+            var portInput = view.findViewById<TextView>(R.id.portInput)
+            var ccpInput = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
+            var schema = schemaInput.text.toString().toLowerCase()
+            var ip = ipInput.text.toString().toLowerCase()
+            var port = portInput.text.toString().toInt()
+            var ccp = ccpInput.selectedCountryNameCode
+            GlobalScope.launch {
+                var pi = PeerInfo(schema, InetAddress.getByName(ip), port, ccp)
+                try {
+                    var ping = ping(pi.address, pi.port)
+                    pi.ping = ping
+                } catch(e: Throwable){
+                    pi.ping = Int.MAX_VALUE
+                }
+                withContext(Dispatchers.Main) {
+                    var selectAdapter = (findViewById<ListView>(R.id.peerList).adapter as SelectPeerInfoListAdapter)
+                    selectAdapter.addItem(0, pi)
+                    selectAdapter.notifyDataSetChanged()
+                    ad.dismiss()
+                }
+            }
+        }
     }
 
     fun onClickSchemaList(v: View) {
