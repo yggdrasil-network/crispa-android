@@ -247,11 +247,11 @@ class YggdrasilTunService : VpnService() {
 
     private fun stopVpn(pi: PendingIntent?) {
         isClosed = true;
+        scope!!.coroutineContext.cancelChildren()
         tunInputStream!!.close()
         tunOutputStream!!.close()
         tunInterface!!.close()
         tunInterface = null
-        scope!!.coroutineContext.cancelChildren()
         Log.d(TAG,"Stop is running from service")
         ygg.stop()
         val intent: Intent = Intent()
