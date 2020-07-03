@@ -28,6 +28,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.FileNotFoundException
 import java.lang.reflect.Type
 import java.net.InetAddress
 import java.net.URI
@@ -77,41 +78,45 @@ class PeerListActivity : AppCompatActivity() {
                     var ping = ping(pi.address, pi.port)
                     pi.ping = ping
                 }
-                var json = downloadJson(PEER_LIST_URL)
-                var countries = CCPCountry.getLibraryMasterCountriesEnglish()
-                val mapType: Type = object :
-                    TypeToken<Map<String?, Map<String, Status>>>() {}.type
-                val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
-                for ((country, peers) in peersMap.entries) {
-                    for ((peer, status) in peers) {
-                        if (status.up) {
-                            for (ccp in countries) {
-                                if (ccp.name.toLowerCase()
-                                        .contains(country.replace(".md", "").replace("-", " "))
-                                ) {
-                                    var url = URI(peer)
-                                    try {
-                                        var address = InetAddress.getByName(url.host)
-                                        var peerInfo =
-                                            PeerInfo(url.scheme, address, url.port, ccp.nameCode)
-                                        if(cp.contains(peerInfo)){
-                                            continue
-                                        }
-                                        var ping = ping(address, url.port)
-                                        peerInfo.ping = ping
-                                        withContext(Dispatchers.Main) {
-                                            adapter.addItem(peerInfo)
-                                            if(adapter.count % 5 == 0) {
-                                                adapter.sort()
+                try {
+                    var json = downloadJson(PEER_LIST_URL)
+                    var countries = CCPCountry.getLibraryMasterCountriesEnglish()
+                    val mapType: Type = object :
+                        TypeToken<Map<String?, Map<String, Status>>>() {}.type
+                    val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
+                    for ((country, peers) in peersMap.entries) {
+                        for ((peer, status) in peers) {
+                            if (status.up) {
+                                for (ccp in countries) {
+                                    if (ccp.name.toLowerCase()
+                                            .contains(country.replace(".md", "").replace("-", " "))
+                                    ) {
+                                        var url = URI(peer)
+                                        try {
+                                            var address = InetAddress.getByName(url.host)
+                                            var peerInfo =
+                                                PeerInfo(url.scheme, address, url.port, ccp.nameCode)
+                                            if(cp.contains(peerInfo)){
+                                                continue
                                             }
+                                            var ping = ping(address, url.port)
+                                            peerInfo.ping = ping
+                                            withContext(Dispatchers.Main) {
+                                                adapter.addItem(peerInfo)
+                                                if(adapter.count % 5 == 0) {
+                                                    adapter.sort()
+                                                }
+                                            }
+                                        } catch (e: Throwable){
+                                            e.printStackTrace()
                                         }
-                                    } catch (e: Throwable){
-                                        e.printStackTrace()
                                     }
                                 }
                             }
                         }
                     }
+                } catch(e: FileNotFoundException){
+                    e.printStackTrace()
                 }
                 var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
                 withContext(Dispatchers.Main) {
