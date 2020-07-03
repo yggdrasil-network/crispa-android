@@ -96,11 +96,11 @@ class PeerListActivity : AppCompatActivity() {
                                             var address = InetAddress.getByName(url.host)
                                             var peerInfo =
                                                 PeerInfo(url.scheme, address, url.port, ccp.nameCode)
+                                            var ping = ping(address, url.port)
+                                            peerInfo.ping = ping
                                             if(cp.contains(peerInfo)){
                                                 continue
                                             }
-                                            var ping = ping(address, url.port)
-                                            peerInfo.ping = ping
                                             withContext(Dispatchers.Main) {
                                                 adapter.addItem(peerInfo)
                                                 if(adapter.count % 5 == 0) {

@@ -63,9 +63,6 @@ class DNSListActivity : AppCompatActivity() {
                     d.ping = ping
                 }
                 for (dns in allDNS) {
-                    if (cd.contains(dns)) {
-                        continue
-                    }
                     var ping = ping(dns.address, 53)
                     dns.ping = ping
                     runOnUiThread(
