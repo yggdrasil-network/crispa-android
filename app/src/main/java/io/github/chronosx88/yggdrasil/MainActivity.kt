@@ -50,8 +50,6 @@ class MainActivity : AppCompatActivity() {
         const val STATUS_FINISH = 8
         const val STATUS_STOP = 9
         const val IPv6: String = "IPv6"
-        const val PEERS: String = "PEERS"
-        const val DNS: String = "DNS"
         const val PEER_LIST_CODE = 1000
         const val DNS_LIST_CODE = 2000
         const val PEER_LIST = "PEERS_LIST"
@@ -173,7 +171,7 @@ class MainActivity : AppCompatActivity() {
         val pi = createPendingResult(TASK_CODE, intent, 0)
         intent.putExtra(PARAM_PINTENT, pi)
         intent.putExtra(COMMAND, UPDATE_DNS)
-        intent.putStringArrayListExtra(DNS, serializeDNSInfoSet2StringList(currentDNS))
+        intent.putStringArrayListExtra(CURRENT_DNS, serializeDNSInfoSet2StringList(currentDNS))
         startService(intent)
     }
 
@@ -197,8 +195,8 @@ class MainActivity : AppCompatActivity() {
             val pi = createPendingResult(TASK_CODE, intent, 0)
             intent.putExtra(PARAM_PINTENT, pi)
             intent.putExtra(COMMAND, START)
-            intent.putStringArrayListExtra(PEERS, serializePeerInfoSet2StringList(currentPeers))
-            intent.putStringArrayListExtra(DNS, serializeDNSInfoSet2StringList(currentDNS))
+            intent.putStringArrayListExtra(CURRENT_PEERS, serializePeerInfoSet2StringList(currentPeers))
+            intent.putStringArrayListExtra(CURRENT_DNS, serializeDNSInfoSet2StringList(currentDNS))
             intent.putExtra(STATIC_IP, findViewById<Switch>(R.id.staticIP).isChecked)
 
             startService(intent)
@@ -235,20 +233,16 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == DNS_LIST_CODE && resultCode== Activity.RESULT_OK){
             if(data!!.extras!=null){
                 var currentDNS = data.extras!!.getStringArrayList(DNS_LIST)
-                if(currentDNS==null || currentDNS.size==0){
-                    showToast("No DNS selected!")
-                } else {
-                    this.currentDNS = deserializeStringList2DNSInfoSet(currentDNS)
-                    val adapter = DNSInfoListAdapter(this, this.currentDNS.sortedWith(compareBy { it.ping }))
-                    val listView = findViewById<ListView>(R.id.dns)
-                    listView.adapter = adapter
-                    //save to shared preferences
-                    val preferences =
-                        PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-                    preferences.edit().putStringSet(CURRENT_DNS, HashSet(currentDNS)).apply()
-                    if(isStarted){
-                        updateDNS()
-                    }
+                this.currentDNS = deserializeStringList2DNSInfoSet(currentDNS)
+                val adapter = DNSInfoListAdapter(this, this.currentDNS.sortedWith(compareBy { it.ping }))
+                val listView = findViewById<ListView>(R.id.dns)
+                listView.adapter = adapter
+                //save to shared preferences
+                val preferences =
+                    PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+                preferences.edit().putStringSet(CURRENT_DNS, HashSet(currentDNS)).apply()
+                if(isStarted){
+                    updateDNS()
                 }
             }
         }

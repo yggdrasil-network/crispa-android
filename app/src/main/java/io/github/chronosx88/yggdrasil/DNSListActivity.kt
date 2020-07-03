@@ -52,11 +52,12 @@ class DNSListActivity : AppCompatActivity() {
         var dnsList = findViewById<ListView>(R.id.dnsList)
         var adapter = SelectDNSInfoListAdapter(this, arrayListOf(), mutableSetOf())
         dnsList.adapter = adapter
+        var cd = deserializeStringList2DNSInfoSet(
+            extras!!.getStringArrayList(MainActivity.DNS_LIST)!!
+        )
         thread(start = true) {
             try {
-                var cd = deserializeStringList2DNSInfoSet(
-                    extras!!.getStringArrayList(MainActivity.DNS_LIST)!!
-                )
+
                 for (d in cd) {
                     var ping = ping(d.address, 53)
                     d.ping = ping
@@ -72,14 +73,22 @@ class DNSListActivity : AppCompatActivity() {
                         {
                             adapter.addItem(dns)
                             adapter.sort()
-                            isLoading = false
                         }
                     )
                 }
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
+            runOnUiThread(
+                Runnable
+                {
+                    var currentDNS = ArrayList(cd.sortedWith(compareBy { it.ping }))
+                    adapter.addAll(0, currentDNS)
+                    isLoading = false
+                }
+            )
         }
+
     }
 
     private fun addNewDNS() {
@@ -133,18 +142,9 @@ class DNSListActivity : AppCompatActivity() {
             val result = Intent(this, MainActivity::class.java)
             var adapter = findViewById<ListView>(R.id.dnsList).adapter as SelectDNSInfoListAdapter
             val selectedDNS = adapter.getSelectedDNS()
-            if(selectedDNS.isNotEmpty()) {
-                result.putExtra(MainActivity.DNS_LIST, serializeDNSInfoSet2StringList(selectedDNS))
-                setResult(Activity.RESULT_OK, result)
-                finish()
-            } else {
-                val text = "Select at least one DNS"
-                val duration = Toast.LENGTH_SHORT
-                val toast = Toast.makeText(applicationContext, text, duration)
-                toast.setGravity(Gravity.CENTER, 0, 0)
-                toast.show()
-            }
-        }
+            result.putExtra(MainActivity.DNS_LIST, serializeDNSInfoSet2StringList(selectedDNS))
+            setResult(Activity.RESULT_OK, result)
+            finish()        }
         return true
     }
 }

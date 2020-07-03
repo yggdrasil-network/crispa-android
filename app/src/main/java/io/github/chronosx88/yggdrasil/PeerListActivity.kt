@@ -181,7 +181,7 @@ class PeerListActivity : AppCompatActivity() {
         }
     }
 
-    fun onClickSchemaList(v: View) {
+    private fun onClickSchemaList(v: View) {
         val height = -1 * v.height +30
         getAddressListPopup()?.showAsDropDown(v, -5, height)
     }

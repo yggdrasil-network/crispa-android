@@ -36,8 +36,8 @@ class YggdrasilTunService : VpnService() {
     private lateinit var ygg: Yggdrasil
     private var isClosed = false
 
-    /** Maximum packet size is constrained by the MTU, which is given as a signed short - 256  */
-    private val MAX_PACKET_SIZE = 65535
+    /** Maximum packet size is constrained by the MTU, which is given as a signed short/2 */
+    private val MAX_PACKET_SIZE = Short.MAX_VALUE/2
 
     companion object {
         private const val TAG = "Yggdrasil-service"
@@ -65,15 +65,15 @@ class YggdrasilTunService : VpnService() {
                 startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service stopped"))
             }
             MainActivity.START ->{
-                val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
-                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
+                val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_PEERS))
+                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_DNS))
                 val staticIP: Boolean = intent.getBooleanExtra(MainActivity.STATIC_IP, false)
                 ygg = Yggdrasil()
                 setupTunInterface(pi, peers, dns, staticIP)
                 startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service started"))
             }
             MainActivity.UPDATE_DNS ->{
-                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
+                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_DNS))
                 setupIOStreams(dns)
             }
             MainActivity.UPDATE_PEERS ->{
@@ -90,6 +90,7 @@ class YggdrasilTunService : VpnService() {
         var builder = Builder()
             .addAddress(address, 7)
             .allowFamily(OsConstants.AF_INET)
+            .allowBypass()
             .setMtu(MAX_PACKET_SIZE)
         if (dns.size > 0) {
             builder.addDnsServer(address)
