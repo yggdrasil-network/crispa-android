@@ -61,7 +61,7 @@ class PeerListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_peer_list)
         setSupportActionBar(findViewById(R.id.toolbar))
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
+        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { _ ->
             addNewPeer()
         }
         var extras = intent.extras
@@ -141,7 +141,7 @@ class PeerListActivity : AppCompatActivity() {
         var ipInput = view.findViewById<TextView>(R.id.ipInput)
         ipInput.requestFocus()
         schemaInput.showSoftInputOnFocus = false
-        schemaInput.setOnFocusChangeListener { v, b ->
+        schemaInput.setOnFocusChangeListener { v, _ ->
             if(schemaInput.isFocused) {
                 onClickSchemaList(v)
             }
@@ -149,9 +149,8 @@ class PeerListActivity : AppCompatActivity() {
         schemaInput.setOnClickListener { v->
             onClickSchemaList(v)
         }
-        getPopupWindow(R.layout.spinner_item, resources.getStringArray(R.array.schemas), schemaInput, getString(R.string.schema));
-        var ccp = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
-        ccp.setCountryForNameCode(countryCode)
+        getPopupWindow(R.layout.spinner_item, resources.getStringArray(R.array.schemas), schemaInput);
+        view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp).setCountryForNameCode(countryCode)
         val ab: AlertDialog.Builder = AlertDialog.Builder(this)
         ab.setCancelable(true).setView(view)
         var ad = ab.show()
@@ -193,8 +192,7 @@ class PeerListActivity : AppCompatActivity() {
     private fun getPopupWindow(
         textViewResourceId: Int,
         objects: Array<String>,
-        editText: TextView,
-        hint: String?
+        editText: TextView
     ): PopupWindow? {
         // initialize a pop up window type
         val popupWindow = PopupWindow(this)
@@ -208,9 +206,6 @@ class PeerListActivity : AppCompatActivity() {
         listView.onItemClickListener = adapter
         // some other visual settings
         popupWindow.isFocusable = true
-        //popupWindow.setWidth(400);
-        val display: Display =
-            (this.getSystemService(Context.WINDOW_SERVICE) as WindowManager).getDefaultDisplay()
         popupWindow.width = 320
         popupWindow.height = WindowManager.LayoutParams.WRAP_CONTENT
         // set the list view as pop up window content

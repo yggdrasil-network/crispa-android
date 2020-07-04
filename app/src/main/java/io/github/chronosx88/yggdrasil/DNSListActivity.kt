@@ -45,7 +45,7 @@ class DNSListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dns_list)
         setSupportActionBar(findViewById(R.id.toolbar))
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
+        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { _ ->
             addNewDNS()
         }
         var extras = intent.extras
@@ -88,6 +88,7 @@ class DNSListActivity : AppCompatActivity() {
 
     }
 
+    @Suppress("DEPRECATION")
     private fun addNewDNS() {
         val view: View = LayoutInflater.from(this).inflate(R.layout.new_dns_dialog, null)
         val countryCode: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
