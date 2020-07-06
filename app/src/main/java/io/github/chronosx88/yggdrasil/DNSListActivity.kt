@@ -97,8 +97,7 @@ class DNSListActivity : AppCompatActivity() {
             this.resources.configuration.locale.country
         }
 
-        var ccp = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
-        ccp.setCountryForNameCode(countryCode)
+        view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp).setCountryForNameCode(countryCode)
         val ab: AlertDialog.Builder = AlertDialog.Builder(this)
         ab.setCancelable(true).setView(view)
         var ad = ab.show()
