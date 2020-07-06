@@ -34,8 +34,8 @@ class DropDownAdapter(
         return getCustomView(position, convertView, parent)
     }
 
-    fun getCustomView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        var convertView: View? = convertView
+    fun getCustomView(position: Int, view: View?, parent: ViewGroup?): View {
+        var convertView: View? = view
         if (convertView == null) {
             convertView =
                 LayoutInflater.from(context).inflate(R.layout.dropdown_item, parent, false)
@@ -43,7 +43,7 @@ class DropDownAdapter(
         val sub = convertView?.findViewById(R.id.sub) as TextView
         val address = objects[position]
         sub.text = address
-        return convertView!!
+        return convertView
     }
 
     override fun onItemClick(arg0: AdapterView<*>?, v: View, arg2: Int, arg3: Long) {
