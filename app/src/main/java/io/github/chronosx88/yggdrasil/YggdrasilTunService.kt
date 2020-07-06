@@ -88,12 +88,11 @@ class YggdrasilTunService : VpnService() {
         address = ygg.addressString
 
         var builder = Builder()
-            .addAddress(address, 7)
+            .addAddress(address!!, 7)
             .allowFamily(OsConstants.AF_INET)
             .allowBypass()
             .setMtu(MAX_PACKET_SIZE)
         if (dns.size > 0) {
-            builder.addDnsServer(address)
             for (d in dns) {
                 builder.addDnsServer(d.address)
             }
@@ -272,10 +271,12 @@ class YggdrasilTunService : VpnService() {
         val networks = cm.allNetworks
         for (network in networks) {
             val linkProperties = cm.getLinkProperties(network)
-            val routes = linkProperties.routes
-            for (route in routes) {
-                if (route.isDefaultRoute && route.gateway is Inet6Address) {
-                    return true
+            if(linkProperties!=null) {
+                val routes = linkProperties.routes
+                for (route in routes) {
+                    if (route.isDefaultRoute && route.gateway is Inet6Address) {
+                        return true
+                    }
                 }
             }
         }
