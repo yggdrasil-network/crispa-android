@@ -23,9 +23,10 @@ class DropDownAdapter(
 ) :
     ArrayAdapter<String?>(context, textViewResourceId, objects), OnItemClickListener {
 
-    private val objects: Array<String>
-    private val popup: PopupWindow
-    private val editText: TextView
+    private val objects: Array<String> = objects
+    private val popup: PopupWindow = popup
+    private val editText: TextView = editText
+    
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup?): View? {
         return getCustomView(position, convertView, parent)
     }
@@ -61,9 +62,4 @@ class DropDownAdapter(
         editText.text = address
     }
 
-    init {
-        this.objects = objects
-        this.popup = popup
-        this.editText = editText
-    }
 }
