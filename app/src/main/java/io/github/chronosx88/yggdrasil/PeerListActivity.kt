@@ -28,6 +28,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.FileNotFoundException
 import java.lang.reflect.Type
 import java.net.InetAddress
 import java.net.URI
@@ -60,7 +61,7 @@ class PeerListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_peer_list)
         setSupportActionBar(findViewById(R.id.toolbar))
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
+        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { _ ->
             addNewPeer()
         }
         var extras = intent.extras
@@ -77,41 +78,45 @@ class PeerListActivity : AppCompatActivity() {
                     var ping = ping(pi.address, pi.port)
                     pi.ping = ping
                 }
-                var json = downloadJson(PEER_LIST_URL)
-                var countries = CCPCountry.getLibraryMasterCountriesEnglish()
-                val mapType: Type = object :
-                    TypeToken<Map<String?, Map<String, Status>>>() {}.type
-                val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
-                for ((country, peers) in peersMap.entries) {
-                    for ((peer, status) in peers) {
-                        if (status.up) {
-                            for (ccp in countries) {
-                                if (ccp.name.toLowerCase()
-                                        .contains(country.replace(".md", "").replace("-", " "))
-                                ) {
-                                    var url = URI(peer)
-                                    try {
-                                        var address = InetAddress.getByName(url.host)
-                                        var peerInfo =
-                                            PeerInfo(url.scheme, address, url.port, ccp.nameCode)
-                                        if(cp.contains(peerInfo)){
-                                            continue
-                                        }
-                                        var ping = ping(address, url.port)
-                                        peerInfo.ping = ping
-                                        withContext(Dispatchers.Main) {
-                                            adapter.addItem(peerInfo)
-                                            if(adapter.count % 5 == 0) {
-                                                adapter.sort()
+                try {
+                    var json = downloadJson(PEER_LIST_URL)
+                    var countries = CCPCountry.getLibraryMasterCountriesEnglish()
+                    val mapType: Type = object :
+                        TypeToken<Map<String?, Map<String, Status>>>() {}.type
+                    val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
+                    for ((country, peers) in peersMap.entries) {
+                        for ((peer, status) in peers) {
+                            if (status.up) {
+                                for (ccp in countries) {
+                                    if (ccp.name.toLowerCase()
+                                            .contains(country.replace(".md", "").replace("-", " "))
+                                    ) {
+                                        var url = URI(peer)
+                                        try {
+                                            var address = InetAddress.getByName(url.host)
+                                            var peerInfo =
+                                                PeerInfo(url.scheme, address, url.port, ccp.nameCode)
+                                            var ping = ping(address, url.port)
+                                            peerInfo.ping = ping
+                                            if(cp.contains(peerInfo)){
+                                                continue
                                             }
+                                            withContext(Dispatchers.Main) {
+                                                adapter.addItem(peerInfo)
+                                                if(adapter.count % 5 == 0) {
+                                                    adapter.sort()
+                                                }
+                                            }
+                                        } catch (e: Throwable){
+                                            e.printStackTrace()
                                         }
-                                    } catch (e: Throwable){
-                                        e.printStackTrace()
                                     }
                                 }
                             }
                         }
                     }
+                } catch(e: FileNotFoundException){
+                    e.printStackTrace()
                 }
                 var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
                 withContext(Dispatchers.Main) {
@@ -136,7 +141,7 @@ class PeerListActivity : AppCompatActivity() {
         var ipInput = view.findViewById<TextView>(R.id.ipInput)
         ipInput.requestFocus()
         schemaInput.showSoftInputOnFocus = false
-        schemaInput.setOnFocusChangeListener { v, b ->
+        schemaInput.setOnFocusChangeListener { v, _ ->
             if(schemaInput.isFocused) {
                 onClickSchemaList(v)
             }
@@ -144,9 +149,8 @@ class PeerListActivity : AppCompatActivity() {
         schemaInput.setOnClickListener { v->
             onClickSchemaList(v)
         }
-        getPopupWindow(R.layout.spinner_item, resources.getStringArray(R.array.schemas), schemaInput, getString(R.string.schema));
-        var ccp = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
-        ccp.setCountryForNameCode(countryCode)
+        getPopupWindow(R.layout.spinner_item, resources.getStringArray(R.array.schemas), schemaInput);
+        view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp).setCountryForNameCode(countryCode)
         val ab: AlertDialog.Builder = AlertDialog.Builder(this)
         ab.setCancelable(true).setView(view)
         var ad = ab.show()
@@ -176,7 +180,7 @@ class PeerListActivity : AppCompatActivity() {
         }
     }
 
-    fun onClickSchemaList(v: View) {
+    private fun onClickSchemaList(v: View) {
         val height = -1 * v.height +30
         getAddressListPopup()?.showAsDropDown(v, -5, height)
     }
@@ -188,8 +192,7 @@ class PeerListActivity : AppCompatActivity() {
     private fun getPopupWindow(
         textViewResourceId: Int,
         objects: Array<String>,
-        editText: TextView,
-        hint: String?
+        editText: TextView
     ): PopupWindow? {
         // initialize a pop up window type
         val popupWindow = PopupWindow(this)
@@ -203,9 +206,6 @@ class PeerListActivity : AppCompatActivity() {
         listView.onItemClickListener = adapter
         // some other visual settings
         popupWindow.isFocusable = true
-        //popupWindow.setWidth(400);
-        val display: Display =
-            (this.getSystemService(Context.WINDOW_SERVICE) as WindowManager).getDefaultDisplay()
         popupWindow.width = 320
         popupWindow.height = WindowManager.LayoutParams.WRAP_CONTENT
         // set the list view as pop up window content

@@ -23,9 +23,10 @@ class DropDownAdapter(
 ) :
     ArrayAdapter<String?>(context, textViewResourceId, objects), OnItemClickListener {
 
-    private val objects: Array<String>
-    private val popup: PopupWindow
-    private val editText: TextView
+    private val objects: Array<String> = objects
+    private val popup: PopupWindow = popup
+    private val editText: TextView = editText
+    
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup?): View? {
         return getCustomView(position, convertView, parent)
     }
@@ -34,8 +35,8 @@ class DropDownAdapter(
         return getCustomView(position, convertView, parent)
     }
 
-    fun getCustomView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        var convertView: View? = convertView
+    fun getCustomView(position: Int, view: View?, parent: ViewGroup?): View {
+        var convertView: View? = view
         if (convertView == null) {
             convertView =
                 LayoutInflater.from(context).inflate(R.layout.dropdown_item, parent, false)
@@ -43,7 +44,7 @@ class DropDownAdapter(
         val sub = convertView?.findViewById(R.id.sub) as TextView
         val address = objects[position]
         sub.text = address
-        return convertView!!
+        return convertView
     }
 
     override fun onItemClick(arg0: AdapterView<*>?, v: View, arg2: Int, arg3: Long) {
@@ -61,9 +62,4 @@ class DropDownAdapter(
         editText.text = address
     }
 
-    init {
-        this.objects = objects
-        this.popup = popup
-        this.editText = editText
-    }
 }

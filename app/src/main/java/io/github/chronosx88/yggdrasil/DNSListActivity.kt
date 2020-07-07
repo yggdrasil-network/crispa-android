@@ -45,26 +45,24 @@ class DNSListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dns_list)
         setSupportActionBar(findViewById(R.id.toolbar))
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
+        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { _ ->
             addNewDNS()
         }
         var extras = intent.extras
         var dnsList = findViewById<ListView>(R.id.dnsList)
         var adapter = SelectDNSInfoListAdapter(this, arrayListOf(), mutableSetOf())
         dnsList.adapter = adapter
+        var cd = deserializeStringList2DNSInfoSet(
+            extras!!.getStringArrayList(MainActivity.DNS_LIST)!!
+        )
         thread(start = true) {
             try {
-                var cd = deserializeStringList2DNSInfoSet(
-                    extras!!.getStringArrayList(MainActivity.DNS_LIST)!!
-                )
+
                 for (d in cd) {
                     var ping = ping(d.address, 53)
                     d.ping = ping
                 }
                 for (dns in allDNS) {
-                    if (cd.contains(dns)) {
-                        continue
-                    }
                     var ping = ping(dns.address, 53)
                     dns.ping = ping
                     runOnUiThread(
@@ -72,16 +70,25 @@ class DNSListActivity : AppCompatActivity() {
                         {
                             adapter.addItem(dns)
                             adapter.sort()
-                            isLoading = false
                         }
                     )
                 }
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
+            runOnUiThread(
+                Runnable
+                {
+                    var currentDNS = ArrayList(cd.sortedWith(compareBy { it.ping }))
+                    adapter.addAll(0, currentDNS)
+                    isLoading = false
+                }
+            )
         }
+
     }
 
+    @Suppress("DEPRECATION")
     private fun addNewDNS() {
         val view: View = LayoutInflater.from(this).inflate(R.layout.new_dns_dialog, null)
         val countryCode: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -90,8 +97,7 @@ class DNSListActivity : AppCompatActivity() {
             this.resources.configuration.locale.country
         }
 
-        var ccp = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
-        ccp.setCountryForNameCode(countryCode)
+        view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp).setCountryForNameCode(countryCode)
         val ab: AlertDialog.Builder = AlertDialog.Builder(this)
         ab.setCancelable(true).setView(view)
         var ad = ab.show()
@@ -133,18 +139,9 @@ class DNSListActivity : AppCompatActivity() {
             val result = Intent(this, MainActivity::class.java)
             var adapter = findViewById<ListView>(R.id.dnsList).adapter as SelectDNSInfoListAdapter
             val selectedDNS = adapter.getSelectedDNS()
-            if(selectedDNS.isNotEmpty()) {
-                result.putExtra(MainActivity.DNS_LIST, serializeDNSInfoSet2StringList(selectedDNS))
-                setResult(Activity.RESULT_OK, result)
-                finish()
-            } else {
-                val text = "Select at least one DNS"
-                val duration = Toast.LENGTH_SHORT
-                val toast = Toast.makeText(applicationContext, text, duration)
-                toast.setGravity(Gravity.CENTER, 0, 0)
-                toast.show()
-            }
-        }
+            result.putExtra(MainActivity.DNS_LIST, serializeDNSInfoSet2StringList(selectedDNS))
+            setResult(Activity.RESULT_OK, result)
+            finish()        }
         return true
     }
 }

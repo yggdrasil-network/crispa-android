@@ -82,6 +82,13 @@ class SelectDNSInfoListAdapter(
         allDNS.add(index, peerInfo)
     }
 
+    fun addAll(index: Int, dnsInfo: ArrayList<DNSInfo>){
+        currentDNS.addAll(dnsInfo)
+        allDNS.removeAll(dnsInfo)
+        allDNS.addAll(index, dnsInfo)
+        this.notifyDataSetChanged()
+    }
+
     fun sort(){
         allDNS = ArrayList(allDNS.sortedWith(compareBy { it.ping }))
         this.notifyDataSetChanged()

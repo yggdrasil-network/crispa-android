@@ -36,8 +36,8 @@ class YggdrasilTunService : VpnService() {
     private lateinit var ygg: Yggdrasil
     private var isClosed = false
 
-    /** Maximum packet size is constrained by the MTU, which is given as a signed short - 256  */
-    private val MAX_PACKET_SIZE = 65535
+    /** Maximum packet size is constrained by the MTU, which is given as a signed short/2 */
+    private val MAX_PACKET_SIZE = Short.MAX_VALUE/2
 
     companion object {
         private const val TAG = "Yggdrasil-service"
@@ -65,15 +65,15 @@ class YggdrasilTunService : VpnService() {
                 startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service stopped"))
             }
             MainActivity.START ->{
-                val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.PEERS))
-                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
+                val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_PEERS))
+                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_DNS))
                 val staticIP: Boolean = intent.getBooleanExtra(MainActivity.STATIC_IP, false)
                 ygg = Yggdrasil()
                 setupTunInterface(pi, peers, dns, staticIP)
                 startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service started"))
             }
             MainActivity.UPDATE_DNS ->{
-                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.DNS))
+                val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_DNS))
                 setupIOStreams(dns)
             }
             MainActivity.UPDATE_PEERS ->{
@@ -88,11 +88,11 @@ class YggdrasilTunService : VpnService() {
         address = ygg.addressString
 
         var builder = Builder()
-            .addAddress(address, 7)
+            .addAddress(address!!, 7)
             .allowFamily(OsConstants.AF_INET)
+            .allowBypass()
             .setMtu(MAX_PACKET_SIZE)
         if (dns.size > 0) {
-            builder.addDnsServer(address)
             for (d in dns) {
                 builder.addDnsServer(d.address)
             }
@@ -246,11 +246,11 @@ class YggdrasilTunService : VpnService() {
 
     private fun stopVpn(pi: PendingIntent?) {
         isClosed = true;
+        scope!!.coroutineContext.cancelChildren()
         tunInputStream!!.close()
         tunOutputStream!!.close()
         tunInterface!!.close()
         tunInterface = null
-        scope!!.coroutineContext.cancelChildren()
         Log.d(TAG,"Stop is running from service")
         ygg.stop()
         val intent: Intent = Intent()
@@ -271,10 +271,12 @@ class YggdrasilTunService : VpnService() {
         val networks = cm.allNetworks
         for (network in networks) {
             val linkProperties = cm.getLinkProperties(network)
-            val routes = linkProperties.routes
-            for (route in routes) {
-                if (route.isDefaultRoute && route.gateway is Inet6Address) {
-                    return true
+            if(linkProperties!=null) {
+                val routes = linkProperties.routes
+                for (route in routes) {
+                    if (route.isDefaultRoute && route.gateway is Inet6Address) {
+                        return true
+                    }
                 }
             }
         }
