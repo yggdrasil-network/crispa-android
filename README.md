@@ -1,15 +1,11 @@
 # Yggdrasil for Android
 
-The application for connecting to Yggdrasil network on Android 
+The application for connecting to Yggdrasil network on Android.
 
-Currently, the application has no options for changing configuration. It is currently in beta, and only has one button to connect and disconnect. More features are under development.
+## Screenshots
 
-![Connect](https://user-images.githubusercontent.com/7539174/84605129-cb9dfe80-ae4f-11ea-920f-cb0a8a02dbe7.png)
-When the application first creates the network interface, the yggdrasil app will request for networking permissions. This only needs to be done once. 
-![Enable-VPN](https://user-images.githubusercontent.com/7539174/84605353-719e3880-ae51-11ea-823c-dbc2ca6192f7.png)
-The app is running once a key is visable in the system dock. Disconnect by pressing the button again.
-![Disconnect](https://user-images.githubusercontent.com/7539174/84605155-03a54180-ae50-11ea-9637-d9a299093743.png)
+<img src="https://user-images.githubusercontent.com/8705683/87849631-2c12d680-c8fb-11ea-81eb-6357e92eb690.png" alt="" height="500" width=""> <img src="https://user-images.githubusercontent.com/8705683/87849706-a04d7a00-c8fb-11ea-9eaa-51a3d3d643b9.png" alt="" height="500" width=""> <img src="https://user-images.githubusercontent.com/8705683/87849714-b78c6780-c8fb-11ea-815d-a9227666d791.png" alt="" height="500" width="">
 
 Once connected, you can access yggdrasil public services, as the application has peered automatically to default peers within the application.
 
-![Testing-website](https://user-images.githubusercontent.com/7539174/84605130-ce005880-ae4f-11ea-942f-da2487cd9942.png)
+<img src="https://user-images.githubusercontent.com/8705683/87849784-62048a80-c8fc-11ea-8eb0-908e69d7595e.png" alt="" height="500" width="">
