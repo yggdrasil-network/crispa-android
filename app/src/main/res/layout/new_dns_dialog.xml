@@ -21,7 +21,7 @@
                 android:id="@+id/ipInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:digits="0,1,2,3,4,5,6,7,8,9,:"
+                android:digits="0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,:"
                 android:hint="IPv6"
                 android:inputType="textNoSuggestions"
                 android:textColor="@color/white"
