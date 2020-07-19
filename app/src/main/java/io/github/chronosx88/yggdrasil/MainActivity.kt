@@ -100,7 +100,9 @@ class MainActivity : AppCompatActivity() {
         currentPeers = deserializeStringSet2PeerInfoSet(preferences.getStringSet(CURRENT_PEERS, HashSet())!!)
         val adapter = PeerInfoListAdapter(this, currentPeers.sortedWith(compareBy { it.ping }))
         peersListView.adapter = adapter
-
+        if(isStarted && this.currentPeers.isEmpty()) {
+            updatePeers()
+        }
         val copyAddressButton = findViewById<Button>(R.id.copyIp)
         copyAddressButton.setOnClickListener {
             val ip = findViewById<TextView>(R.id.ip)
@@ -185,6 +187,18 @@ class MainActivity : AppCompatActivity() {
         startService(intent)
     }
 
+    private fun checkPeers(){
+        //this is Mesh mode, send Peers update every 5 sec
+        thread(start = true) {
+            while(true) {
+                Thread.sleep(5000)
+                if(isStarted && this.currentPeers.isEmpty()) {
+                    updatePeers()
+                }
+            }
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -251,15 +265,7 @@ class MainActivity : AppCompatActivity() {
             STATUS_START -> {
                 print("service started")
                 if(this.currentPeers.isEmpty()){
-                    //this is Mesh mode, send Peers update every 5 sec
-                    thread(start = true) {
-                        while(true) {
-                            Thread.sleep(5000)
-                            if(isStarted && this.currentPeers.isEmpty()) {
-                                updatePeers()
-                            }
-                        }
-                    }
+                    checkPeers()
                 }
             }
             STATUS_FINISH -> {
