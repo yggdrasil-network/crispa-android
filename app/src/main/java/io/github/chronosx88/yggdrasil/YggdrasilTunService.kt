@@ -1,9 +1,6 @@
 package io.github.chronosx88.yggdrasil
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -292,8 +289,13 @@ class YggdrasilTunService : VpnService() {
                 // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
                 ""
             }
+        var intent = Intent(this, MainActivity::class.java)
+        var stackBuilder = TaskStackBuilder.create(this)
+        stackBuilder.addNextIntentWithParentStack(intent)
+        var pi = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
         val b = NotificationCompat.Builder(this, channelId)
         b.setOngoing(true)
+            .setContentIntent(pi)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(text)
             .setSmallIcon(R.mipmap.ic_launcher)

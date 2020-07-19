@@ -16,11 +16,13 @@
             tools:ignore="GoogleAppIndexingWarning">
         <activity
                 android:name=".PeerListActivity"
+                android:parentActivityName=".MainActivity"
                 android:label="@string/title_activity_peer_list"
                 android:theme="@style/AppTheme.NoActionBar"
                 android:screenOrientation="portrait"/>
         <activity
                 android:name=".DNSListActivity"
+                android:parentActivityName=".MainActivity"
                 android:label="@string/title_activity_dns_list"
                 android:theme="@style/AppTheme.NoActionBar"
                 android:screenOrientation="portrait"/>
