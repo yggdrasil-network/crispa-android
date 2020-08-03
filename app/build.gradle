@@ -6,10 +6,10 @@ android {
     compileSdkVersion 29
     defaultConfig {
         applicationId "io.github.chronosx88.yggdrasil"
-        minSdkVersion 21
+        minSdkVersion 15
         targetSdkVersion 29
-        versionCode 3
-        versionName "1.3"
+        versionCode 4
+        versionName "1.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         project.ext.set("archivesBaseName", project.getParent().name+"-"+versionName)
     }
@@ -37,17 +37,6 @@ android {
         jvmTarget = '1.8'
     }
 }
-
-task ndkBuild(type: Exec) {
-    def rootDir = project.rootDir
-    workingDir = new File(rootDir,"yggdrasil")
-    commandLine 'make'
-}
-
-gradle.projectsEvaluated {
-    tasks.compileDebugKotlin.dependsOn(ndkBuild)
-}
-
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
