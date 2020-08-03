@@ -59,7 +59,7 @@ class YggdrasilTunService : VpnService() {
         when(intent?.getStringExtra(MainActivity.COMMAND)){
             MainActivity.STOP ->{
                 stopVpn(pi)
-                startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service stopped"))
+                foregroundNotification(FOREGROUND_ID, "Yggdrasil service stopped")
             }
             MainActivity.START ->{
                 val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_PEERS))
@@ -67,7 +67,7 @@ class YggdrasilTunService : VpnService() {
                 val staticIP: Boolean = intent.getBooleanExtra(MainActivity.STATIC_IP, false)
                 ygg = Yggdrasil()
                 setupTunInterface(pi, peers, dns, staticIP)
-                startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service started"))
+                foregroundNotification(FOREGROUND_ID, "Yggdrasil service started")
             }
             MainActivity.UPDATE_DNS ->{
                 val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_DNS))
@@ -84,11 +84,17 @@ class YggdrasilTunService : VpnService() {
     private fun setupIOStreams(dns: MutableSet<DNSInfo>){
         address = ygg.addressString
 
-        var builder = Builder()
-            .addAddress(address!!, 7)
-            .allowFamily(OsConstants.AF_INET)
-            .allowBypass()
-            .setMtu(MAX_PACKET_SIZE)
+        var builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Builder()
+                .addAddress(address!!, 7)
+                .allowFamily(OsConstants.AF_INET)
+                .allowBypass()
+                .setMtu(MAX_PACKET_SIZE)
+        } else {
+            Builder()
+                .addAddress(address!!, 7)
+                .setMtu(MAX_PACKET_SIZE)
+        }
         if (dns.size > 0) {
             for (d in dns) {
                 builder.addDnsServer(d.address)
@@ -265,14 +271,17 @@ class YggdrasilTunService : VpnService() {
     private fun hasIpv6DefaultRoute(): Boolean {
         val cm =
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networks = cm.allNetworks
-        for (network in networks) {
-            val linkProperties = cm.getLinkProperties(network)
-            if(linkProperties!=null) {
-                val routes = linkProperties.routes
-                for (route in routes) {
-                    if (route.isDefaultRoute && route.gateway is Inet6Address) {
-                        return true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val networks = cm.allNetworks
+
+            for (network in networks) {
+                val linkProperties = cm.getLinkProperties(network)
+                if(linkProperties!=null) {
+                    val routes = linkProperties.routes
+                    for (route in routes) {
+                        if (route.isDefaultRoute && route.gateway is Inet6Address) {
+                            return true
+                        }
                     }
                 }
             }
@@ -280,27 +289,29 @@ class YggdrasilTunService : VpnService() {
         return false
     }
 
-    private fun foregroundNotification(text: String): Notification? {
-        val channelId =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                createNotificationChannel(TAG, "Yggdrasil service")
-            } else {
-                // If earlier version channel ID is not used
-                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
-                ""
-            }
-        var intent = Intent(this, MainActivity::class.java)
-        var stackBuilder = TaskStackBuilder.create(this)
-        stackBuilder.addNextIntentWithParentStack(intent)
-        var pi = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
-        val b = NotificationCompat.Builder(this, channelId)
-        b.setOngoing(true)
-            .setContentIntent(pi)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText(text)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setTicker(text)
-        return b.build()
+    private fun foregroundNotification(FOREGROUND_ID: Int, text: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            val channelId =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    createNotificationChannel(TAG, "Yggdrasil service")
+                } else {
+                    // If earlier version channel ID is not used
+                    // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
+                    ""
+                }
+            var intent = Intent(this, MainActivity::class.java)
+            var stackBuilder = TaskStackBuilder.create(this)
+            stackBuilder.addNextIntentWithParentStack(intent)
+            var pi = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+            val b = NotificationCompat.Builder(this, channelId)
+            b.setOngoing(true)
+                .setContentIntent(pi)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(text)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setTicker(text)
+            startForeground(FOREGROUND_ID, b.build())
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

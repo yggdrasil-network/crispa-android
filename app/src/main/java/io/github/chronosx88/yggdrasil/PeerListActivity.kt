@@ -140,7 +140,9 @@ class PeerListActivity : AppCompatActivity() {
         var schemaInput = view.findViewById<TextView>(R.id.schemaInput)
         var ipInput = view.findViewById<TextView>(R.id.ipInput)
         ipInput.requestFocus()
-        schemaInput.showSoftInputOnFocus = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            schemaInput.showSoftInputOnFocus = false
+        }
         schemaInput.setOnFocusChangeListener { v, _ ->
             if(schemaInput.isFocused) {
                 onClickSchemaList(v)
