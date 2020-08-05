@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
         @JvmStatic var isStarted = false
         @JvmStatic var isCancelled = false
-        @JvmStatic var address = ""
+        @JvmStatic var address:String? = ""
     }
 
     private var currentPeers = setOf<PeerInfo>()
@@ -230,7 +230,7 @@ class MainActivity : AppCompatActivity() {
                 //save to shared preferences
                 val preferences =
                     PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-                preferences.edit().putStringSet(CURRENT_PEERS, HashSet(currentPeers)).apply()
+                preferences.edit().putStringSet(CURRENT_PEERS, currentPeers!!.toHashSet()).apply()
                 if(isStarted){
                     //TODO implement UpdateConfig method in native interface and apply peer changes
                     stopVpn()
@@ -254,7 +254,7 @@ class MainActivity : AppCompatActivity() {
                 //save to shared preferences
                 val preferences =
                     PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-                preferences.edit().putStringSet(CURRENT_DNS, HashSet(currentDNS)).apply()
+                preferences.edit().putStringSet(CURRENT_DNS, currentDNS!!.toHashSet()).apply()
                 if(isStarted){
                     updateDNS()
                 }

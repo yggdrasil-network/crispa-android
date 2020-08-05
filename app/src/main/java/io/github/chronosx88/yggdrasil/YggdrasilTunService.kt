@@ -31,7 +31,6 @@ import java.net.Inet6Address
 class YggdrasilTunService : VpnService() {
 
     private lateinit var ygg: Yggdrasil
-    private lateinit var tunInterface: ParcelFileDescriptor
     private lateinit var tunInputStream: InputStream
     private lateinit var tunOutputStream: OutputStream
     private lateinit var address: String
@@ -39,6 +38,7 @@ class YggdrasilTunService : VpnService() {
 
     /** Maximum packet size is constrained by the MTU, which is given as a signed short/2 */
     private val MAX_PACKET_SIZE = Short.MAX_VALUE/2
+    private var tunInterface: ParcelFileDescriptor? = null
 
     companion object {
         private const val TAG = "Yggdrasil-service"
@@ -103,8 +103,8 @@ class YggdrasilTunService : VpnService() {
             builder.addRoute("2000::",3)
         }
         tunInterface = builder.establish()
-        tunInputStream = FileInputStream(tunInterface.fileDescriptor)
-        tunOutputStream = FileOutputStream(tunInterface.fileDescriptor)
+        tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
+        tunOutputStream = FileOutputStream(tunInterface!!.fileDescriptor)
     }
 
     private fun setupTunInterface(
@@ -144,7 +144,7 @@ class YggdrasilTunService : VpnService() {
 
     private fun sendMeshPeerStatus(pi: PendingIntent?){
         class Token : TypeToken<List<Peer>>()
-        var add = ygg.addressString
+        ygg.addressString
         var meshPeers: List<Peer> = gson.fromJson(ygg.peersJSON, Token().type)
         val intent: Intent = Intent().putStringArrayListExtra(
             MainActivity.MESH_PEERS,
@@ -238,7 +238,7 @@ class YggdrasilTunService : VpnService() {
         scope!!.coroutineContext.cancelChildren()
         tunInputStream.close()
         tunOutputStream.close()
-        tunInterface.close()
+        tunInterface!!.close()
         Log.d(TAG,"Stop is running from service")
         ygg.stop()
         val intent: Intent = Intent()
