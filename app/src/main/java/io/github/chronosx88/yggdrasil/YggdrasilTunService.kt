@@ -128,7 +128,7 @@ class YggdrasilTunService : VpnService() {
         val job = SupervisorJob()
         scope = CoroutineScope(Dispatchers.Default + job)
         scope!!.launch {
-            val buffer = ByteArray(1024)
+            val buffer = ByteArray(MAX_PACKET_SIZE)
             while (!isClosed) {
                 readPacketsFromTun(yggConduitEndpoint, buffer)
             }
@@ -215,7 +215,7 @@ class YggdrasilTunService : VpnService() {
     private fun readPacketsFromTun(yggConduitEndpoint: ConduitEndpoint, buffer: ByteArray) {
         try {
             // Read the outgoing packet from the input stream.
-            val length = tunInputStream.buffered().read(buffer)
+            val length = tunInputStream.read(buffer)
             if(length>0) {
                 yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
             }
