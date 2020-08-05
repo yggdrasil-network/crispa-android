@@ -230,7 +230,7 @@ class YggdrasilTunService : VpnService() {
             if (length > 0){
                 yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
             } else {
-                Thread.sleep(100)
+                Thread.sleep(10)
             }
         } catch (e: IOException) {
             e.printStackTrace()
