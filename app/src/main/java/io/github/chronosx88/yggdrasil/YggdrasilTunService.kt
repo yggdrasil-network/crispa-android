@@ -31,6 +31,10 @@ import java.net.Inet6Address
 class YggdrasilTunService : VpnService() {
 
     private lateinit var ygg: Yggdrasil
+    private lateinit var tunInterface: ParcelFileDescriptor
+    private lateinit var tunInputStream: InputStream
+    private lateinit var tunOutputStream: OutputStream
+    private lateinit var address: String
     private var isClosed = false
 
     /** Maximum packet size is constrained by the MTU, which is given as a signed short/2 */
@@ -39,20 +43,10 @@ class YggdrasilTunService : VpnService() {
     companion object {
         private const val TAG = "Yggdrasil-service"
     }
-    private var tunInterface: ParcelFileDescriptor? = null
-    private var tunInputStream: InputStream? = null
-    private var tunOutputStream: OutputStream? = null
-    private var scope: CoroutineScope? = null
-    private var address: String? = null
 
-    private var mNotificationManager: NotificationManager? = null
+    private var scope: CoroutineScope? = null
 
     private val FOREGROUND_ID = 1338
-
-    override fun onCreate() {
-        super.onCreate()
-        mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val pi: PendingIntent? = intent?.getParcelableExtra(MainActivity.PARAM_PINTENT)
@@ -86,14 +80,14 @@ class YggdrasilTunService : VpnService() {
 
         var builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Builder()
-                .addAddress(address!!, 7)
+                .addAddress(address, 7)
                 .allowFamily(OsConstants.AF_INET)
                 .allowBypass()
                 .setBlocking(true)
                 .setMtu(MAX_PACKET_SIZE)
         } else {
             Builder()
-                .addAddress(address!!, 7)
+                .addAddress(address, 7)
                 .addRoute("200::", 7)
                 .setMtu(MAX_PACKET_SIZE)
         }
@@ -108,15 +102,9 @@ class YggdrasilTunService : VpnService() {
         if(!hasIpv6DefaultRoute()){
             builder.addRoute("2000::",3)
         }
-        if(tunInterface!=null){
-            tunInterface!!.close()
-            tunInputStream!!.close()
-            tunOutputStream!!.close()
-        }
         tunInterface = builder.establish()
-        tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
-        tunOutputStream = FileOutputStream(tunInterface!!.fileDescriptor)
-
+        tunInputStream = FileInputStream(tunInterface.fileDescriptor)
+        tunOutputStream = FileOutputStream(tunInterface.fileDescriptor)
     }
 
     private fun setupTunInterface(
@@ -140,7 +128,7 @@ class YggdrasilTunService : VpnService() {
         val job = SupervisorJob()
         scope = CoroutineScope(Dispatchers.Default + job)
         scope!!.launch {
-            val buffer = ByteArray(2048)
+            val buffer = ByteArray(1024)
             while (!isClosed) {
                 readPacketsFromTun(yggConduitEndpoint, buffer)
             }
@@ -227,7 +215,7 @@ class YggdrasilTunService : VpnService() {
     private fun readPacketsFromTun(yggConduitEndpoint: ConduitEndpoint, buffer: ByteArray) {
         try {
             // Read the outgoing packet from the input stream.
-            val length = tunInputStream?.read(buffer) ?: 1
+            val length = tunInputStream.read(buffer)
             yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
         } catch (e: IOException) {
             e.printStackTrace()
@@ -238,7 +226,7 @@ class YggdrasilTunService : VpnService() {
         val buffer = yggConduitEndpoint.recv()
         if(buffer!=null) {
             try {
-                tunOutputStream?.write(buffer)
+                tunOutputStream.write(buffer)
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -248,10 +236,9 @@ class YggdrasilTunService : VpnService() {
     private fun stopVpn(pi: PendingIntent?) {
         isClosed = true;
         scope!!.coroutineContext.cancelChildren()
-        tunInputStream!!.close()
-        tunOutputStream!!.close()
-        tunInterface!!.close()
-        tunInterface = null
+        tunInputStream.close()
+        tunOutputStream.close()
+        tunInterface.close()
         Log.d(TAG,"Stop is running from service")
         ygg.stop()
         val intent: Intent = Intent()
