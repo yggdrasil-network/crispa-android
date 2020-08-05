@@ -216,9 +216,7 @@ class YggdrasilTunService : VpnService() {
         try {
             // Read the outgoing packet from the input stream.
             val length = tunInputStream.read(buffer)
-            if(length>0) {
-                yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
-            }
+            yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
         } catch (e: IOException) {
             e.printStackTrace()
         }
