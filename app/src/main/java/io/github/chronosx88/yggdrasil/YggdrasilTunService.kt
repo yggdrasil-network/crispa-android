@@ -88,8 +88,8 @@ class YggdrasilTunService : VpnService() {
         } else {
             Builder()
                 .addAddress(address, 7)
-                .addAddress("1.1.1.1", 32)
-                .addRoute("200::", 7)
+                //.addAddress("1.1.1.1", 32)
+                //.addRoute("200::", 7)
                 .setMtu(MAX_PACKET_SIZE)
         }
         if (dns.size > 0) {
