@@ -141,18 +141,18 @@ class MainActivity : AppCompatActivity() {
         }
         val c: Class<*> = dummy.Dummy::class.java
         val methods: Array<Method> = c.declaredMethods
-        Log.d(TAG,"Getting dummy.Dummy class methods list")
+        Log.i(TAG,"Getting dummy.Dummy class methods list")
         if(methods.isEmpty()){
-            Log.d(TAG,"No class methods found in dummy.Dummy")
+            Log.i(TAG,"No class methods found in dummy.Dummy")
         } else {
             for (m in methods) {
-                Log.d(TAG, "The method is: " + m.toString())
+                Log.i(TAG, "The method is: " + m.toString())
             }
         }
     }
 
     private fun stopVpn(){
-        Log.d(TAG,"Stop")
+        Log.i(TAG,"Stop")
         val intent = Intent(this, YggdrasilTunService::class.java)
         val TASK_CODE = 100
         val pi = createPendingResult(TASK_CODE, intent, 0)
@@ -162,7 +162,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startVpn(){
-        Log.d(TAG,"Start")
+        Log.i(TAG,"Start")
         val intent= VpnService.prepare(this)
         if (intent!=null){
             startActivityForResult(intent, VPN_REQUEST_CODE)
@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateDNS(){
-        Log.d(TAG,"Update DNS")
+        Log.i(TAG,"Update DNS")
         val intent = Intent(this, YggdrasilTunService::class.java)
         val TASK_CODE = 100
         val pi = createPendingResult(TASK_CODE, intent, 0)
