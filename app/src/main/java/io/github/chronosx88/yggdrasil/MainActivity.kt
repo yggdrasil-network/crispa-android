@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.content.*
 import android.net.VpnService
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -140,19 +141,11 @@ class MainActivity : AppCompatActivity() {
             ipLayout.visibility = View.VISIBLE
             findViewById<TextView>(R.id.ip).text = address
         }
-
-        val sourceDir: String = this.applicationInfo.sourceDir
-        val dexFile = DexFile(sourceDir)
-        val cl = classLoader
-        val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
-        val methods: Array<Method> = c.declaredMethods
-        showToast("Getting dummy.Dummy class methods list")
-        if(methods.isEmpty()){
-            showToast("No class methods found in dummy.Dummy")
-        } else {
-            for (m in methods) {
-                showToast("The method is: " + m.toString())
-            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            val sourceDir: String = this.applicationInfo.sourceDir
+            val dexFile = DexFile(sourceDir)
+            val cl = classLoader
+            val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
         }
     }
 
