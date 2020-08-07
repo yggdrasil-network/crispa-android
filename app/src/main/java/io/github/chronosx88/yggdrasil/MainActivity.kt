@@ -11,7 +11,6 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import app.artyomd.injector.DexUtils
 import dalvik.system.DexFile
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
@@ -24,7 +23,6 @@ import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeS
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringSet2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializeDNSInfoSet2StringList
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializePeerInfoSet2StringList
-import java.io.File
 import java.lang.reflect.Method
 import kotlin.concurrent.thread
 
@@ -142,18 +140,12 @@ class MainActivity : AppCompatActivity() {
             ipLayout.visibility = View.VISIBLE
             findViewById<TextView>(R.id.ip).text = address
         }
-        val c: Class<*> = dummy.Dummy::class.java
+
+        val sourceDir: String = this.applicationInfo.sourceDir
+        val dexFile = DexFile(sourceDir)
+        val cl = classLoader
+        val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
         val methods: Array<Method> = c.declaredMethods
-        showToast("Getting dummy.Dummy class methods list")
-        if(methods.isEmpty()){
-            showToast("No class methods found in dummy.Dummy")
-        } else {
-            for (m in methods) {
-                showToast("The method is: " + m.toString())
-            }
-        }
-        val sourceDir = listOf<File>(File(this.applicationInfo.sourceDir))
-        DexUtils.loadDex(this, sourceDir)
         showToast("Getting dummy.Dummy class methods list")
         if(methods.isEmpty()){
             showToast("No class methods found in dummy.Dummy")
