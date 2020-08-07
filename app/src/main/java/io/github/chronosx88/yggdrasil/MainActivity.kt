@@ -141,11 +141,12 @@ class MainActivity : AppCompatActivity() {
         }
         val c: Class<*> = dummy.Dummy::class.java
         val methods: Array<Method> = c.declaredMethods
+        Log.d(TAG,"Getting dummy.Dummy class methods list")
         if(methods.isEmpty()){
             Log.d(TAG,"No class methods found in dummy.Dummy")
         } else {
-            for (i in methods.indices) {
-                Log.d(TAG, "The method is: " + methods[i].toString())
+            for (m in methods) {
+                Log.d(TAG, "The method is: " + m.toString())
             }
         }
     }
