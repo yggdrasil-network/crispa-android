@@ -161,8 +161,20 @@ class PeerListActivity : AppCompatActivity() {
             var portInput = view.findViewById<TextView>(R.id.portInput)
             var ccpInput = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
             var schema = schemaInput.text.toString().toLowerCase()
+            if(schema.isEmpty()){
+                schemaInput.error = "Schema is required"
+            }
             var ip = ipInput.text.toString().toLowerCase()
+            if(ip.isEmpty()){
+                ipInput.error = "IP address is required"
+            }
             var port = portInput.text.toString().toInt()
+            if(port<=0){
+                portInput.error = "Port should be > 0"
+            }
+            if(port>=Short.MAX_VALUE){
+                portInput.error = "Port should be < "+Short.MAX_VALUE
+            }
             var ccp = ccpInput.selectedCountryNameCode
             GlobalScope.launch {
                 var pi = PeerInfo(schema, InetAddress.getByName(ip), port, ccp)
