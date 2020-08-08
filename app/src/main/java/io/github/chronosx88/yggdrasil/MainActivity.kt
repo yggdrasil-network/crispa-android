@@ -149,7 +149,6 @@ class MainActivity : AppCompatActivity() {
                 it.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
                     override fun onAvailable(network: Network) {
                         if(isStarted) {
-                            showToast("network on")
                             stopVpn()
                             Thread.sleep(1000)
                             startVpn()
@@ -157,7 +156,6 @@ class MainActivity : AppCompatActivity() {
                     }
                     override fun onLost(network: Network?) {
                         if(isStarted) {
-                            showToast("network off")
                             stopVpn()
                             Thread.sleep(1000)
                             startVpn()
@@ -173,14 +171,12 @@ class MainActivity : AppCompatActivity() {
                     if ("android.net.conn.CONNECTIVITY_CHANGE" == intent.action) {
                         if (status == NetworkUtils.NETWORK_STATUS_NOT_CONNECTED) {
                             if(isStarted) {
-                                showToast("network on")
                                 stopVpn()
                                 Thread.sleep(1000)
                                 startVpn()
                             }
                         } else {
                             if(isStarted) {
-                                showToast("network off")
                                 stopVpn()
                                 Thread.sleep(1000)
                                 startVpn()
