@@ -3,7 +3,10 @@ package io.github.chronosx88.yggdrasil
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.*
+import android.net.ConnectivityManager
+import android.net.Network
 import android.net.VpnService
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -11,9 +14,11 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import dalvik.system.DexFile
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.config.DNSInfoListAdapter
+import io.github.chronosx88.yggdrasil.models.config.NetworkUtils
 import io.github.chronosx88.yggdrasil.models.config.PeerInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializePeerStringList2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
@@ -22,11 +27,6 @@ import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeS
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringSet2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializeDNSInfoSet2StringList
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializePeerInfoSet2StringList
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.net.InetAddress
 import kotlin.concurrent.thread
 
 
@@ -62,12 +62,12 @@ class MainActivity : AppCompatActivity() {
 
         @JvmStatic var isStarted = false
         @JvmStatic var isCancelled = false
-        @JvmStatic var address = ""
+        @JvmStatic var address:String? = ""
     }
 
     private var currentPeers = setOf<PeerInfo>()
     private var currentDNS = setOf<DNSInfo>()
-    private var meshPeersReceiver: BroadcastReceiver? = null
+    private var networkStateReceiver: BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -143,11 +143,60 @@ class MainActivity : AppCompatActivity() {
             ipLayout.visibility = View.VISIBLE
             findViewById<TextView>(R.id.ip).text = address
         }
-
+        /*
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            connectivityManager?.let {
+                it.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
+                    override fun onAvailable(network: Network) {
+                        if(isStarted) {
+                            stopVpn()
+                            Thread.sleep(1000)
+                            startVpn()
+                        }
+                    }
+                    override fun onLost(network: Network?) {
+                        if(isStarted) {
+                            stopVpn()
+                            Thread.sleep(1000)
+                            startVpn()
+                        }
+                    }
+                })
+            }
+        } else {
+            networkStateReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    val status: Int = NetworkUtils.getConnectivityStatusString(context)
+                    Log.i(TAG, "Network state has been changed")
+                    if ("android.net.conn.CONNECTIVITY_CHANGE" == intent.action) {
+                        if (status == NetworkUtils.NETWORK_STATUS_NOT_CONNECTED) {
+                            if(isStarted) {
+                                stopVpn()
+                                Thread.sleep(1000)
+                                startVpn()
+                            }
+                        } else {
+                            if(isStarted) {
+                                stopVpn()
+                                Thread.sleep(1000)
+                                startVpn()
+                            }
+                        }
+                    }
+                }
+            }
+        }*/
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            val sourceDir: String = this.applicationInfo.sourceDir
+            val dexFile = DexFile(sourceDir)
+            val cl = classLoader
+            val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
+        }
     }
 
     private fun stopVpn(){
-        Log.d(TAG,"Stop")
+        Log.i(TAG,"Stop")
         val intent = Intent(this, YggdrasilTunService::class.java)
         val TASK_CODE = 100
         val pi = createPendingResult(TASK_CODE, intent, 0)
@@ -157,7 +206,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startVpn(){
-        Log.d(TAG,"Start")
+        Log.i(TAG,"Start")
         val intent= VpnService.prepare(this)
         if (intent!=null){
             startActivityForResult(intent, VPN_REQUEST_CODE)
@@ -167,7 +216,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateDNS(){
-        Log.d(TAG,"Update DNS")
+        Log.i(TAG,"Update DNS")
         val intent = Intent(this, YggdrasilTunService::class.java)
         val TASK_CODE = 100
         val pi = createPendingResult(TASK_CODE, intent, 0)
@@ -230,7 +279,7 @@ class MainActivity : AppCompatActivity() {
                 //save to shared preferences
                 val preferences =
                     PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-                preferences.edit().putStringSet(CURRENT_PEERS, HashSet(currentPeers)).apply()
+                preferences.edit().putStringSet(CURRENT_PEERS, currentPeers!!.toHashSet()).apply()
                 if(isStarted){
                     //TODO implement UpdateConfig method in native interface and apply peer changes
                     stopVpn()
@@ -254,7 +303,7 @@ class MainActivity : AppCompatActivity() {
                 //save to shared preferences
                 val preferences =
                     PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-                preferences.edit().putStringSet(CURRENT_DNS, HashSet(currentDNS)).apply()
+                preferences.edit().putStringSet(CURRENT_DNS, currentDNS!!.toHashSet()).apply()
                 if(isStarted){
                     updateDNS()
                 }
@@ -332,8 +381,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (meshPeersReceiver != null){
-            unregisterReceiver(meshPeersReceiver);
+        if (networkStateReceiver != null){
+            unregisterReceiver(networkStateReceiver);
         }
     }
 

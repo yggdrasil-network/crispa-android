@@ -107,7 +107,7 @@ class DNSListActivity : AppCompatActivity() {
             var ccpInput = view.findViewById<com.hbb20.CountryCodePicker>(R.id.ccp)
             var ip = ipInput.text.toString().toLowerCase()
             var ccp = ccpInput.selectedCountryNameCode
-            GlobalScope.launch {
+            thread(start = true) {
                 var di = DNSInfo(InetAddress.getByName("["+ip+"]"), ccp, "User DNS")
                 try {
                     var ping = ping(di.address, 53)
@@ -115,8 +115,8 @@ class DNSListActivity : AppCompatActivity() {
                 } catch(e: Throwable){
                     di.ping = Int.MAX_VALUE
                 }
-                withContext(Dispatchers.Main) {
-                    var selectAdapter = (findViewById<ListView>(R.id.peerList).adapter as SelectDNSInfoListAdapter)
+                runOnUiThread {
+                    var selectAdapter = (findViewById<ListView>(R.id.dnsList).adapter as SelectDNSInfoListAdapter)
                     selectAdapter.addItem(0, di)
                     selectAdapter.notifyDataSetChanged()
                     ad.dismiss()
