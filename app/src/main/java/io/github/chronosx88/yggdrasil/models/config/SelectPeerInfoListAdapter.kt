@@ -57,15 +57,13 @@ class SelectPeerInfoListAdapter(
             peerInfoHolder.peerInfoText.setTextColor(Color.WHITE)
         }
         peerInfoHolder.checkbox.setOnCheckedChangeListener { _, isChecked ->
-            if(!isLoading) {
-                if (isChecked) {
-                    if (!currentPeers.contains(currentPeer)) {
-                        currentPeers.add(currentPeer)
-                    }
-                } else {
-                    if (currentPeers.contains(currentPeer)) {
-                        currentPeers.remove(currentPeer)
-                    }
+            if (isChecked) {
+                if (!currentPeers.contains(currentPeer)) {
+                    currentPeers.add(currentPeer)
+                }
+            } else {
+                if (currentPeers.contains(currentPeer)) {
+                    currentPeers.remove(currentPeer)
                 }
             }
         }
