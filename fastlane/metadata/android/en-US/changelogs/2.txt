@@ -1,0 +1,13 @@
+v1.2
+ * New DNS and new Peer form
+ * fix adding Peers when json url unavailable
+ * DNS dynamic list selection fixes
+ * ping selected Peers and DNS fixes
+ * fixed when app crashed sometimes after ygg switch off
+ * fixed high CPU consumption after switch-off.
+ * prevent NPE fix
+
+v1.1
+ 1. Added dynamic peer list loading and edit functionality
+ 2. Layout minor changes
+ 3. Peers ping test and sorting by response time
