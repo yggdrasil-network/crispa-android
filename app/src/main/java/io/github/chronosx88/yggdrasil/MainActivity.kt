@@ -143,16 +143,24 @@ class MainActivity : AppCompatActivity() {
             ipLayout.visibility = View.VISIBLE
             findViewById<TextView>(R.id.ip).text = address
         }
-
+        /*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             connectivityManager?.let {
                 it.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
                     override fun onAvailable(network: Network) {
-                        startVpn()
+                        if(isStarted) {
+                            stopVpn()
+                            Thread.sleep(1000)
+                            startVpn()
+                        }
                     }
                     override fun onLost(network: Network?) {
-                        stopVpn()
+                        if(isStarted) {
+                            stopVpn()
+                            Thread.sleep(1000)
+                            startVpn()
+                        }
                     }
                 })
             }
@@ -163,14 +171,22 @@ class MainActivity : AppCompatActivity() {
                     Log.i(TAG, "Network state has been changed")
                     if ("android.net.conn.CONNECTIVITY_CHANGE" == intent.action) {
                         if (status == NetworkUtils.NETWORK_STATUS_NOT_CONNECTED) {
-                            stopVpn()
+                            if(isStarted) {
+                                stopVpn()
+                                Thread.sleep(1000)
+                                startVpn()
+                            }
                         } else {
-                            startVpn()
+                            if(isStarted) {
+                                stopVpn()
+                                Thread.sleep(1000)
+                                startVpn()
+                            }
                         }
                     }
                 }
             }
-        }
+        }*/
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             val sourceDir: String = this.applicationInfo.sourceDir
             val dexFile = DexFile(sourceDir)
