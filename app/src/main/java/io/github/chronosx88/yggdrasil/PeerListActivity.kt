@@ -34,14 +34,13 @@ import java.net.URI
 import java.net.URL
 import java.nio.charset.Charset
 
-
 class PeerListActivity : AppCompatActivity() {
 
     companion object {
         const val PEER_LIST_URL = "https://publicpeers.neilalexander.dev/publicnodes.json"
     }
 
-    fun downloadJson(link: String): String {
+    private fun downloadJson(link: String): String {
         URL(link).openStream().use { input ->
             var outStream = ByteArrayOutputStream()
             outStream.use { output ->

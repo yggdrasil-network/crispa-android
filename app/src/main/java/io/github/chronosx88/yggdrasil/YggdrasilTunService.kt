@@ -31,7 +31,7 @@ import kotlin.concurrent.thread
 
 class YggdrasilTunService : VpnService() {
 
-    private lateinit var ygg: Yggdrasil
+    //private lateinit var ygg: Yggdrasil
     private lateinit var tunInputStream: InputStream
     private lateinit var tunOutputStream: OutputStream
     private lateinit var address: String
@@ -43,6 +43,7 @@ class YggdrasilTunService : VpnService() {
 
     companion object {
         private const val TAG = "Yggdrasil-service"
+        private val ygg = Yggdrasil()
     }
 
     private val FOREGROUND_ID = 1338
@@ -58,7 +59,7 @@ class YggdrasilTunService : VpnService() {
                 val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_PEERS))
                 val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_DNS))
                 val staticIP: Boolean = intent.getBooleanExtra(MainActivity.STATIC_IP, false)
-                ygg = Yggdrasil()
+
                 setupTunInterface(pi, peers, dns, staticIP)
                 foregroundNotification(FOREGROUND_ID, "Yggdrasil service started")
             }
@@ -235,7 +236,7 @@ class YggdrasilTunService : VpnService() {
         tunOutputStream.close()
         tunInterface!!.close()
         Log.d(TAG,"Stop is running from service")
-        ygg.stop()
+        //ygg.stop()
         val intent: Intent = Intent()
         pi!!.send(this, MainActivity.STATUS_STOP, intent)
         stopForeground(true)
