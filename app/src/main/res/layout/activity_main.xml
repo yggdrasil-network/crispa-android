@@ -30,7 +30,7 @@
                     app:popupTheme="@style/AppTheme.PopupOverlay"
                     android:layout_marginRight="240dp" />
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/staticIP"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
                     android:text="Static IP"
                     android:textColor="@color/white"/>
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switchOn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

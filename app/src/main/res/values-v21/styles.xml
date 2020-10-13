@@ -2,6 +2,6 @@
 <resources>
 
     <style name="SwitchTheme" parent="Theme.AppCompat.Light">
-        <item name="android:colorControlActivated">@color/green</item>
+        <item name="colorControlActivated">@color/green</item>
     </style>
 </resources>
