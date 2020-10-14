@@ -55,12 +55,16 @@ class MainActivity : AppCompatActivity() {
         const val CURRENT_PEERS = "CURRENT_PEERS_v1.2.1"
         const val CURRENT_DNS = "CURRENT_DNS_v1.2"
         const val START_VPN = "START_VPN"
-        private const val TAG="Yggdrasil"
+        private const val TAG = "Yggdrasil"
         private const val VPN_REQUEST_CODE = 0x0F
 
-        @JvmStatic var isStarted = false
-        @JvmStatic var isCancelled = false
-        @JvmStatic var address:String? = ""
+        @JvmStatic
+        var isStarted = false
+        @JvmStatic
+        var isCancelled = false
+        @JvmStatic
+        var address: String? = ""
+
     }
 
     private var currentPeers = setOf<PeerInfo>()
@@ -202,7 +206,11 @@ class MainActivity : AppCompatActivity() {
             val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
         }
         val versionName = findViewById<Button>(R.id.about)
-        versionName.text = """version: ${BuildConfig.VERSION_NAME} build:(${BuildConfig.VERSION_CODE})"""
+        versionName.text = """version:${BuildConfig.VERSION_NAME} build:${BuildConfig.VERSION_CODE}"""
+        versionName.setOnClickListener {
+            val intent = Intent(this@MainActivity, AboutActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun stopVpn(){

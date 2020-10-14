@@ -159,5 +159,5 @@
             android:background="@android:color/transparent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:text=""
-            android:textSize="12sp" />
+            android:textSize="10sp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
