@@ -11,7 +11,7 @@ android {
         versionCode 5
         versionName "1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        project.ext.set("archivesBaseName", project.getParent().name+"-"+versionName)
+        setProperty("archivesBaseName", project.getParent().name+"-"+versionName)
     }
 	signingConfigs {
 	  release {
