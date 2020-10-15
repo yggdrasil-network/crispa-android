@@ -2,6 +2,7 @@ package io.github.chronosx88.yggdrasil
 
 import android.os.Bundle
 import android.text.Html
+import android.text.method.LinkMovementMethod
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
@@ -113,7 +114,9 @@ class AboutActivity:AppCompatActivity() {
                 "<p>\n" +
                 "<font style=\"font-size: 10pt\" color=\"#ffffff\">To accept incoming peerings, you will probably need to configure port forwarding on your router/gateway. Yggdrasil listens on the port number specified in the Listen setting, so forward this port to the machine that runs Yggdrasil.\n" +
                 "<p>\n" +
+                "<font style=\"font-size: 10pt\" color=\"#ffffff\">\n" +
                 "To use outbound peerings, that is, static peers that have been configured in your Peers setting, you will likely not need to change anything.\n" +
+                "</font>\n" +
                 "</font></p>\n" +
                 "\n" +
                 "<font class=\"western\" style=\"font-size: 14pt\" color=\"#ffffff\"><b>Why does my Yggdrasil adapter have an unusually high MTU?</b></font>\n" +
@@ -129,7 +132,9 @@ class AboutActivity:AppCompatActivity() {
                 "<p>\n" +
                 "<font style=\"font-size: 10pt\" color=\"#ffffff\">yggdrasilctl will assume that your admin port is on localhost:9001. If you have changed it, simply pass your configured endpoint through to yggdrasilctl, i.e.\n" +
                 "<p>\n" +
+                "<font style=\"font-size: 10pt\" color=\"#ffffff\">\n" +
                 "yggdrasilctl -endpoint=127.0.0.1:12345\n" +
+                "</font>\n" +
                 "</font></p>\n" +
                 "\n" +
                 "<font class=\"western\" style=\"font-size: 14pt\" color=\"#ffffff\"><b>I want to run an Yggdrasil router to provide connectivity for other people, but I don’t want them to be able to reach my own machine.</b></font>\n" +
@@ -189,10 +194,12 @@ class AboutActivity:AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_about)
         setSupportActionBar(findViewById(R.id.toolbar))
+        var textArea = this.findViewById<TextView>(R.id.about)
+        textArea.movementMethod = LinkMovementMethod.getInstance();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            this.findViewById<TextView>(R.id.about).text =  Html.fromHtml(about, HtmlCompat.FROM_HTML_MODE_LEGACY)
+            textArea.text =  Html.fromHtml(about, HtmlCompat.FROM_HTML_MODE_LEGACY)
         } else {
-            this.findViewById<TextView>(R.id.about).text =  Html.fromHtml(about)
+            textArea.text =  Html.fromHtml(about)
         }
     }
 }
