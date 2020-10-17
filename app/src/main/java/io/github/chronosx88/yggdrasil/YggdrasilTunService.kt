@@ -27,6 +27,7 @@ import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
 import java.net.Inet6Address
+import kotlin.concurrent.thread
 
 class YggdrasilTunService : VpnService() {
 
@@ -43,8 +44,6 @@ class YggdrasilTunService : VpnService() {
     companion object {
         private const val TAG = "Yggdrasil-service"
     }
-
-    private var scope: CoroutineScope? = null
 
     private val FOREGROUND_ID = 1338
 
@@ -124,15 +123,13 @@ class YggdrasilTunService : VpnService() {
 
         setupIOStreams(dns)
 
-        val job = SupervisorJob()
-        scope = CoroutineScope(Dispatchers.Default + job)
-        scope!!.launch {
+        thread(start = true) {
             val buffer = ByteArray(MAX_PACKET_SIZE)
             while (!isClosed) {
                 readPacketsFromTun(yggConduitEndpoint, buffer)
             }
         }
-        scope!!.launch {
+        thread(start = true) {
             while (!isClosed) {
                 writePacketsToTun(yggConduitEndpoint)
             }
@@ -234,7 +231,6 @@ class YggdrasilTunService : VpnService() {
 
     private fun stopVpn(pi: PendingIntent?) {
         isClosed = true;
-        scope!!.coroutineContext.cancelChildren()
         tunInputStream.close()
         tunOutputStream.close()
         tunInterface!!.close()

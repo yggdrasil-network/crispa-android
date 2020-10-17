@@ -241,18 +241,6 @@ class PeerListActivity : AppCompatActivity() {
             val result = Intent(this, MainActivity::class.java)
             var adapter = findViewById<ListView>(R.id.peerList).adapter as SelectPeerInfoListAdapter
             val selectedPeers = adapter.getSelectedPeers()
-            /* WiFi Direct test - no peers is needed
-            if(selectedPeers.size>0) {
-                result.putExtra(MainActivity.PEER_LIST, serializePeerInfoSet2StringList(selectedPeers))
-                setResult(Activity.RESULT_OK, result)
-                finish()
-            } else {
-                val text = "Select at least one peer"
-                val duration = Toast.LENGTH_SHORT
-                val toast = Toast.makeText(applicationContext, text, duration)
-                toast.setGravity(Gravity.CENTER, 0, 0)
-                toast.show()
-            }*/
             result.putExtra(MainActivity.PEER_LIST, serializePeerInfoSet2StringList(selectedPeers))
             setResult(Activity.RESULT_OK, result)
             finish()

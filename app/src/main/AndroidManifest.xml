@@ -15,6 +15,12 @@
             android:supportsRtl="true"
             tools:ignore="GoogleAppIndexingWarning">
         <activity
+                android:name=".AboutActivity"
+                android:parentActivityName=".MainActivity"
+                android:label="@string/title_activity_about"
+                android:theme="@style/AppTheme.NoActionBar"
+                android:screenOrientation="portrait"/>
+        <activity
                 android:name=".PeerListActivity"
                 android:parentActivityName=".MainActivity"
                 android:label="@string/title_activity_peer_list"

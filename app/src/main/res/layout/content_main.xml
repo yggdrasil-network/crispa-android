@@ -152,5 +152,12 @@
                 app:layout_constraintTop_toTopOf="parent"/>
 
     </LinearLayout>
-
+    <Button
+            android:id="@+id/about"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:text=""
+            android:textSize="10sp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
