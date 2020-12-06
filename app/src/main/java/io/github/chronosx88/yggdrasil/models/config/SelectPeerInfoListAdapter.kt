@@ -79,7 +79,9 @@ class SelectPeerInfoListAdapter(
     }
 
     fun addItem(peerInfo: PeerInfo){
-        allPeers.add(peerInfo)
+        if(!allPeers.contains(peerInfo)){
+            allPeers.add(peerInfo)
+        }
     }
 
     fun addItem(index: Int, peerInfo: PeerInfo){

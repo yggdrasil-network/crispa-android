@@ -404,7 +404,7 @@ class MainActivity : AppCompatActivity() {
         super.onRestoreInstanceState(savedInstanceState)
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-        findViewById<Switch>(R.id.staticIP).isChecked =
+        findViewById<SwitchCompat>(R.id.staticIP).isChecked =
             preferences.getString(STATIC_IP, null) != null
     }
 
