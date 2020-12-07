@@ -5,12 +5,14 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.webkit.URLUtil
 import android.widget.Button
 import android.widget.ListView
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -40,6 +42,7 @@ import java.nio.charset.Charset
 class PeerListActivity : AppCompatActivity() {
 
     companion object {
+        const val PEER_LIST = "PEER_LIST"
         const val PEER_LIST_URL = "https://publicpeers.neilalexander.dev/publicnodes.json"
         const val CACHE_NAME = "PEER_LIST_CACHE"
         const val ONLINE_PEERINFO_LIST = "online_peer_info_list"
@@ -59,6 +62,7 @@ class PeerListActivity : AppCompatActivity() {
         }
     }
 
+    private var peerListUrl = PEER_LIST_URL
     private var peerListPing = true
     var popup: PopupWindow? = null
     var adapter: DropDownAdapter? = null
@@ -69,6 +73,13 @@ class PeerListActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { _ ->
             addNewPeer()
+        }
+        val preferences =
+            PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+        var peerListUrl: String =
+            preferences.getString(PEER_LIST, "")!!
+        if(!peerListUrl.isNullOrBlank()){
+            peerListUrl = this@PeerListActivity.peerListUrl
         }
         var extras = intent.extras
         var peerList = findViewById<ListView>(R.id.peerList)
@@ -108,7 +119,7 @@ class PeerListActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    var json = downloadJson(PEER_LIST_URL)
+                    var json = downloadJson(peerListUrl)
                     var countries = CCPCountry.getLibraryMasterCountriesEnglish()
                     val mapType: Type = object :
                         TypeToken<Map<String?, Map<String, Status>>>() {}.type
@@ -193,6 +204,27 @@ class PeerListActivity : AppCompatActivity() {
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun editPeerListUrl() {
+        val view: View = LayoutInflater.from(this).inflate(R.layout.edit_peer_list_url_dialog, null)
+        val ab: AlertDialog.Builder = AlertDialog.Builder(this)
+        ab.setCancelable(true).setView(view)
+        var ad = ab.show()
+        var saveButton = view.findViewById<Button>(R.id.save)
+        saveButton.setOnClickListener{
+            var urlInput = view.findViewById<TextView>(R.id.urlInput)
+            var url = urlInput.text.toString()
+            if(!URLUtil.isValidUrl(url)){
+                urlInput.error = "The URL is invalid!"
+                return@setOnClickListener;
+            }
+            peerListUrl = url
+            val preferences =
+                PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+            preferences.edit().putString(PEER_LIST, peerListUrl).apply()
+            ad.dismiss()
         }
     }
 
@@ -314,6 +346,14 @@ class PeerListActivity : AppCompatActivity() {
             result.putExtra(MainActivity.PEER_LIST, serializePeerInfoSet2StringList(selectedPeers))
             setResult(Activity.RESULT_OK, result)
             finish()
+        }
+
+        val editUrl = menu.findItem(R.id.editUrlItem) as MenuItem
+        item.setActionView(R.layout.menu_edit_url)
+        val editUrlButton = editUrl
+            .actionView.findViewById<Button>(R.id.editUrlButton)
+        editUrlButton.setOnClickListener {
+            editPeerListUrl()
         }
         return true
     }
