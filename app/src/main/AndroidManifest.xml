@@ -32,6 +32,12 @@
                 android:label="@string/title_activity_dns_list"
                 android:theme="@style/AppTheme.NoActionBar"
                 android:screenOrientation="portrait"/>
+        <activity
+                android:name=".CopyLocalNodeInfoActivity"
+                android:parentActivityName=".MainActivity"
+                android:label="@string/title_activity_copy_local_node_info"
+                android:theme="@style/AppTheme.NoActionBar"
+                android:screenOrientation="portrait"/>
         <service
                 android:name=".YggdrasilTunService"
                 android:enabled="true"

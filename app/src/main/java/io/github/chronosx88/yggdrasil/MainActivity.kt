@@ -110,16 +110,7 @@ class MainActivity : AppCompatActivity() {
         if(isStarted && this.currentPeers.isEmpty()) {
             updatePeers()
         }
-        val copyAddressButton = findViewById<Button>(R.id.copyIp)
-        copyAddressButton.setOnClickListener {
-            val ip = findViewById<TextView>(R.id.ip)
-            val clipboard: ClipboardManager =
-                getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip =
-                ClipData.newPlainText("IP address", ip.text.toString())
-            clipboard.setPrimaryClip(clip)
-            showToast(getString(R.string.address_copied))
-        }
+
         val editPeersButton = findViewById<Button>(R.id.edit)
         editPeersButton.setOnClickListener {
             if(isStarted){
@@ -149,6 +140,14 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, DNSListActivity::class.java)
             intent.putStringArrayListExtra(DNS_LIST, serializeDNSInfoSet2StringList(currentDNS))
             startActivityForResult(intent, DNS_LIST_CODE)
+        }
+        val nodeInfoButton = findViewById<Button>(R.id.nodeInfo)
+        nodeInfoButton.setOnClickListener {
+            if(isStarted) {
+                val intent = Intent(this@MainActivity, CopyLocalNodeInfoActivity::class.java)
+                intent.putExtra(IPv6, findViewById<TextView>(R.id.ip).text.toString())
+                startActivity(intent)
+            }
         }
         if(isStarted){
             val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
