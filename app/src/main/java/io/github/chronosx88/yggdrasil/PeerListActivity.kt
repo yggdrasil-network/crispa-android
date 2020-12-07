@@ -213,8 +213,10 @@ class PeerListActivity : AppCompatActivity() {
         ab.setCancelable(true).setView(view)
         var ad = ab.show()
         var saveButton = view.findViewById<Button>(R.id.save)
+        var urlInput = view.findViewById<TextView>(R.id.urlInput)
+        urlInput.text = peerListUrl
         saveButton.setOnClickListener{
-            var urlInput = view.findViewById<TextView>(R.id.urlInput)
+
             var url = urlInput.text.toString()
             if(!URLUtil.isValidUrl(url)){
                 urlInput.error = "The URL is invalid!"
