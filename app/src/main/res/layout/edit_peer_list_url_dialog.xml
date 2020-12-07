@@ -23,7 +23,6 @@
                 android:layout_height="wrap_content"
                 android:hint="URL"
                 android:textColor="@color/white"
-                android:inputType="number"
                 android:textCursorDrawable="@null"/>
     </com.google.android.material.textfield.TextInputLayout>
 
