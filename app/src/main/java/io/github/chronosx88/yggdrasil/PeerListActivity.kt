@@ -79,7 +79,7 @@ class PeerListActivity : AppCompatActivity() {
         var peerListUrl: String =
             preferences.getString(PEER_LIST, "")!!
         if(!peerListUrl.isNullOrBlank()){
-            peerListUrl = this@PeerListActivity.peerListUrl
+            this@PeerListActivity.peerListUrl = peerListUrl
         }
         var extras = intent.extras
         var peerList = findViewById<ListView>(R.id.peerList)
@@ -119,7 +119,7 @@ class PeerListActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    var json = downloadJson(peerListUrl)
+                    var json = downloadJson(this@PeerListActivity.peerListUrl)
                     var countries = CCPCountry.getLibraryMasterCountriesEnglish()
                     val mapType: Type = object :
                         TypeToken<Map<String?, Map<String, Status>>>() {}.type
@@ -349,7 +349,7 @@ class PeerListActivity : AppCompatActivity() {
         }
 
         val editUrl = menu.findItem(R.id.editUrlItem) as MenuItem
-        item.setActionView(R.layout.menu_edit_url)
+        editUrl.setActionView(R.layout.menu_edit_url)
         val editUrlButton = editUrl
             .actionView.findViewById<Button>(R.id.editUrlButton)
         editUrlButton.setOnClickListener {
