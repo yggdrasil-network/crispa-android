@@ -14,7 +14,6 @@ class PeerInfo {
 
     constructor(schema: String, address: InetAddress, port: Int, countryCode: String){
         this.schema = schema
-        this.address = address
         var a = address.toString();
         if(a.lastIndexOf('/')>0){
             this.hostName = a.split("/")[0]
@@ -27,7 +26,6 @@ class PeerInfo {
 
     constructor(schema: String, address: InetAddress, port: Int, countryCode: String?, isMeshPeer: Boolean){
         this.schema = schema
-        this.address = address
         var a = address.toString();
         if(a.lastIndexOf('/')>0){
             this.hostName = a.split("/")[0]
@@ -40,7 +38,6 @@ class PeerInfo {
     }
 
     lateinit var schema: String
-    lateinit var address: InetAddress
     lateinit var hostName: String
     var port = 0
     var countryCode: String?=null

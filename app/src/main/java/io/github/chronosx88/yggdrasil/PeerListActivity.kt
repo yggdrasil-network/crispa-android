@@ -99,14 +99,14 @@ class PeerListActivity : AppCompatActivity() {
                     extras!!.getStringArrayList(MainActivity.PEER_LIST)!!
                 )
                 for (pi in cp) {
-                    var ping = ping(pi.address, pi.port)
+                    var ping = ping(pi.hostName, pi.port)
                     pi.ping = ping
                 }
                 try {
                     var peerInfoCache = peerInfoListCache.get(ONLINE_PEERINFO_LIST)
                     if (peerInfoCache != null && peerInfoCache.isNotEmpty()) {
                         for (peerInfo in peerInfoCache) {
-                            var ping = ping(peerInfo.address, peerInfo.port)
+                            var ping = ping(peerInfo.hostName, peerInfo.port)
                             peerInfo.ping = ping
                             if (cp.contains(peerInfo)) {
                                 continue
@@ -145,7 +145,7 @@ class PeerListActivity : AppCompatActivity() {
                                                     url.port,
                                                     ccp.nameCode
                                                 )
-                                            var ping = ping(address, url.port)
+                                            var ping = ping(url.host, url.port)
                                             peerInfo.ping = ping
                                             if (cp.contains(peerInfo)) {
                                                 continue
@@ -179,7 +179,7 @@ class PeerListActivity : AppCompatActivity() {
                             var onlinePeerInfoList = peerInfoListCache.get(ONLINE_PEERINFO_LIST)
                             if (onlinePeerInfoList != null) {
                                 for (peerInfo in onlinePeerInfoList) {
-                                    var ping = ping(peerInfo.address, peerInfo.port)
+                                    var ping = ping(peerInfo.hostName, peerInfo.port)
                                     peerInfo.ping = ping
                                     if (cp.contains(peerInfo)) {
                                         continue
@@ -283,7 +283,7 @@ class PeerListActivity : AppCompatActivity() {
             GlobalScope.launch {
                 var pi = PeerInfo(schema, InetAddress.getByName(ip), port, ccp)
                 try {
-                    var ping = ping(pi.address, pi.port)
+                    var ping = ping(pi.hostName, pi.port)
                     pi.ping = ping
                 } catch (e: Throwable){
                     pi.ping = Int.MAX_VALUE
@@ -375,9 +375,6 @@ class SizeOfPeerList: SizeOf<List<PeerInfo>> {
     override fun sizeOf(obj: List<PeerInfo>): Int{
         var size = 0
         for (o in obj) {
-            if (o.address != null) {
-                size += o.address.toString().length * 2
-            }
             if (o.hostName != null) {
                 size += o.hostName.length * 2
             }
