@@ -107,6 +107,17 @@ class MainActivity : AppCompatActivity() {
         )
         val adapter = PeerInfoListAdapter(this, currentPeers.sortedWith(compareBy { it.ping }))
         peersListView.adapter = adapter
+
+        if (adapter.count > 10) {
+            val item = adapter.getView(0, null, peersListView)
+            item.measure(0, 0)
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                (10 * item.measuredHeight).toInt()
+            )
+            peersListView.layoutParams = params
+        }
+
         if(isStarted && this.currentPeers.isEmpty()) {
             updatePeers()
         }
