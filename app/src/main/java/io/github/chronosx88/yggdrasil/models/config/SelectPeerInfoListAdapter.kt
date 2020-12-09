@@ -1,14 +1,14 @@
 package io.github.chronosx88.yggdrasil.models.config
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Color
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.CheckBox
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import io.github.chronosx88.yggdrasil.R
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 
@@ -46,12 +46,11 @@ class SelectPeerInfoListAdapter(
         val currentPeer = allPeers[position]
         peerInfoHolder.countryFlag.setImageResource(currentPeer.getCountry(mContext)!!.flagID)
         val peerId = currentPeer.toString()
+        peerInfoHolder.peerInfoText.text = peerId
         if(currentPeer.ping == Int.MAX_VALUE){
-            peerInfoHolder.peerInfoText.text = peerId
             peerInfoHolder.ping.text=""
             peerInfoHolder.peerInfoText.setTextColor(Color.GRAY)
         } else {
-            peerInfoHolder.peerInfoText.text = peerId
             peerInfoHolder.ping.text = currentPeer.ping.toString() + " ms"
             peerInfoHolder.peerInfoText.setTextColor(Color.WHITE)
         }
@@ -65,6 +64,14 @@ class SelectPeerInfoListAdapter(
                     currentPeers.remove(currentPeer)
                 }
             }
+        }
+        peerInfoHolder.peerInfoText.setOnClickListener {
+            val clipboard: ClipboardManager =
+                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip =
+                ClipData.newPlainText("Peer info", peerId)
+            clipboard.setPrimaryClip(clip)
+            showToast(peerId + " " + context.getString(R.string.node_info_copied))
         }
         peerInfoHolder.checkbox.isChecked = this.currentPeers.contains(currentPeer)
         return listItem!!
@@ -107,4 +114,10 @@ class SelectPeerInfoListAdapter(
         lateinit var ping: TextView
     }
 
+    private fun showToast(text: String){
+        val duration = Toast.LENGTH_SHORT
+        val toast = Toast.makeText(context, text, duration)
+        toast.setGravity(Gravity.CENTER, 0, 0)
+        toast.show()
+    }
 }
