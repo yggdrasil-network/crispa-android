@@ -59,11 +59,11 @@ class DNSListActivity : AppCompatActivity() {
             try {
 
                 for (d in cd) {
-                    var ping = ping(d.address, 53)
+                    var ping = ping(d.address.hostAddress, 53)
                     d.ping = ping
                 }
                 for (dns in allDNS) {
-                    var ping = ping(dns.address, 53)
+                    var ping = ping(dns.address.hostAddress, 53)
                     dns.ping = ping
                     runOnUiThread(
                         Runnable
@@ -110,7 +110,7 @@ class DNSListActivity : AppCompatActivity() {
             thread(start = true) {
                 var di = DNSInfo(InetAddress.getByName("["+ip+"]"), ccp, "User DNS")
                 try {
-                    var ping = ping(di.address, 53)
+                    var ping = ping(di.address.hostAddress, 53)
                     di.ping = ping
                 } catch(e: Throwable){
                     di.ping = Int.MAX_VALUE
@@ -127,7 +127,7 @@ class DNSListActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.save, menu)
+        menuInflater.inflate(R.menu.save_dns, menu)
         val item = menu.findItem(R.id.saveItem) as MenuItem
         item.setActionView(R.layout.menu_save)
         val saveButton = item

@@ -177,7 +177,7 @@ class YggdrasilTunService : VpnService() {
                     .putString(MainActivity.signingPublicKey, signingPublicKey)
                     .putString(MainActivity.encryptionPrivateKey, encryptionPrivateKey)
                     .putString(MainActivity.encryptionPublicKey, encryptionPublicKey)
-                    .putString(MainActivity.STATIC_IP,MainActivity.STATIC_IP).apply()
+                    .putString(MainActivity.STATIC_IP, MainActivity.STATIC_IP).apply()
             } else {
                 val signingPrivateKey = preferences.getString(MainActivity.signingPrivateKey, null)
                 val signingPublicKey = preferences.getString(MainActivity.signingPublicKey, null)

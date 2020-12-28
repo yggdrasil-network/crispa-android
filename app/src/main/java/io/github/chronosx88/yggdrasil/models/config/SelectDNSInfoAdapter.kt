@@ -1,14 +1,14 @@
 package io.github.chronosx88.yggdrasil.models.config
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Color
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.CheckBox
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import io.github.chronosx88.yggdrasil.R
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 
@@ -66,6 +66,14 @@ class SelectDNSInfoListAdapter(
                 }
             }
         }
+        dnsInfoHolder.dnsInfoText.setOnClickListener {
+            val clipboard: ClipboardManager =
+                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip =
+                ClipData.newPlainText("DNS info", dnsId)
+            clipboard.setPrimaryClip(clip)
+            showToast(dnsId + " " + context.getString(R.string.node_info_copied))
+        }
         dnsInfoHolder.checkbox.isChecked = this.currentDNS.contains(currentDNS)
         return listItem!!
     }
@@ -99,5 +107,12 @@ class SelectDNSInfoListAdapter(
         lateinit var countryFlag: ImageView
         lateinit var dnsInfoText: TextView
         lateinit var ping: TextView
+    }
+
+    private fun showToast(text: String){
+        val duration = Toast.LENGTH_SHORT
+        val toast = Toast.makeText(context, text, duration)
+        toast.setGravity(Gravity.CENTER, 0, 0)
+        toast.show()
     }
 }

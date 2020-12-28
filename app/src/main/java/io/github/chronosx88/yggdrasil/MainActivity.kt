@@ -107,19 +107,21 @@ class MainActivity : AppCompatActivity() {
         )
         val adapter = PeerInfoListAdapter(this, currentPeers.sortedWith(compareBy { it.ping }))
         peersListView.adapter = adapter
+
+        if (adapter.count > 10) {
+            val item = adapter.getView(0, null, peersListView)
+            item.measure(0, 0)
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                (10 * item.measuredHeight).toInt()
+            )
+            peersListView.layoutParams = params
+        }
+
         if(isStarted && this.currentPeers.isEmpty()) {
             updatePeers()
         }
-        val copyAddressButton = findViewById<Button>(R.id.copyIp)
-        copyAddressButton.setOnClickListener {
-            val ip = findViewById<TextView>(R.id.ip)
-            val clipboard: ClipboardManager =
-                getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip =
-                ClipData.newPlainText("IP address", ip.text.toString())
-            clipboard.setPrimaryClip(clip)
-            showToast(getString(R.string.address_copied))
-        }
+
         val editPeersButton = findViewById<Button>(R.id.edit)
         editPeersButton.setOnClickListener {
             if(isStarted){
@@ -149,6 +151,14 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, DNSListActivity::class.java)
             intent.putStringArrayListExtra(DNS_LIST, serializeDNSInfoSet2StringList(currentDNS))
             startActivityForResult(intent, DNS_LIST_CODE)
+        }
+        val nodeInfoButton = findViewById<Button>(R.id.nodeInfo)
+        nodeInfoButton.setOnClickListener {
+            if(isStarted) {
+                val intent = Intent(this@MainActivity, CopyLocalNodeInfoActivity::class.java)
+                intent.putExtra(IPv6, findViewById<TextView>(R.id.ip).text.toString())
+                startActivity(intent)
+            }
         }
         if(isStarted){
             val ipLayout = findViewById<LinearLayout>(R.id.ipLayout)
@@ -404,7 +414,7 @@ class MainActivity : AppCompatActivity() {
         super.onRestoreInstanceState(savedInstanceState)
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
-        findViewById<Switch>(R.id.staticIP).isChecked =
+        findViewById<SwitchCompat>(R.id.staticIP).isChecked =
             preferences.getString(STATIC_IP, null) != null
     }
 
