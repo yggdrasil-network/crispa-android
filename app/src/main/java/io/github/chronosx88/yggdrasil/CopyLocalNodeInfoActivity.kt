@@ -1,12 +1,12 @@
 package io.github.chronosx88.yggdrasil
 
 import android.os.Bundle
-import android.widget.ListView
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import io.github.chronosx88.yggdrasil.models.NodeInfo
-import io.github.chronosx88.yggdrasil.models.config.CopyInfoAdapter
-import io.github.chronosx88.yggdrasil.models.config.SelectDNSInfoListAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import io.github.chronosx88.yggdrasil.models.config.NodeInfoListAdapter
 
 class CopyLocalNodeInfoActivity: AppCompatActivity() {
 
@@ -17,12 +17,24 @@ class CopyLocalNodeInfoActivity: AppCompatActivity() {
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
         val ipv6Address = intent.extras!!.getString(MainActivity.IPv6, "")
-        val signingPublicKey = preferences.getString(MainActivity.signingPublicKey, "")
-        val encryptionPublicKey = preferences.getString(MainActivity.encryptionPublicKey, "")
-        var nodeInfoListView = findViewById<ListView>(R.id.nodeInfoList)
-        val nodeInfoList = listOf<NodeInfo>(NodeInfo("IP address", ipv6Address!!), NodeInfo("Encryption Public Key", encryptionPublicKey!!), NodeInfo("Signing Public Key", signingPublicKey!!));
-        var adapter = CopyInfoAdapter(this, nodeInfoList)
+        val signingPublicKey = preferences.getString(MainActivity.signingPublicKey, "***")
+        val encryptionPublicKey = preferences.getString(MainActivity.encryptionPublicKey, "***")
+        var nodeInfoListView = findViewById<RecyclerView>(R.id.node_info_list)
+        val nodeInfoList = listOf<Pair<String, String>>(Pair("IP address", ipv6Address!!), Pair("Encryption Public Key", encryptionPublicKey!!), Pair("Signing Public Key", signingPublicKey!!));
+        val adapter =
+            NodeInfoListAdapter(
+                this,
+                nodeInfoList.toTypedArray()
+            )
         nodeInfoListView.adapter = adapter
+        nodeInfoListView.layoutManager = LinearLayoutManager(this)
+
+        getSupportActionBar()?.setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar()?.setDisplayShowHomeEnabled(true);
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
 }
