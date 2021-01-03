@@ -13,6 +13,7 @@
 .externalNativeBuild
 /yggdrasil/yggdrasil.aar
 /yggdrasil/yggdrasil-sources.jar
+/yggdrasil/build/
 /app/src/main/assets/yggdrasil-0.3.8-linux-arm64
 /app/src/main/assets/yggdrasil-0.3.8-linux-armhf
 /.idea/
