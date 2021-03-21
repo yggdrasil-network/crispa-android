@@ -35,10 +35,10 @@
                     android:textColor="@color/dark_30"
                     />
             <Button
-                    android:id="@+id/copyIp"
+                    android:id="@+id/nodeInfo"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:text="COPY"
+                    android:text="INFO"
                     app:layout_constraintEnd_toEndOf="parent"
                     android:background="@android:color/transparent"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -53,7 +53,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/copyIp"
+                app:layout_constraintEnd_toStartOf="@+id/nodeInfo"
                 android:text=""
                 android:textColor="@color/white"/>
     </LinearLayout>
@@ -152,5 +152,12 @@
                 app:layout_constraintTop_toTopOf="parent"/>
 
     </LinearLayout>
-
+    <Button
+            android:id="@+id/about"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:text=""
+            android:textSize="10sp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

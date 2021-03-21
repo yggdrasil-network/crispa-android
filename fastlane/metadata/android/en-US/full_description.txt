@@ -1,0 +1,4 @@
+The application for connecting to Yggdrasil network on Android
+
+Once connected, you can access yggdrasil public services,
+as the application has peered automatically to default peers within the application

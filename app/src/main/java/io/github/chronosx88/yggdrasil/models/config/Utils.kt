@@ -77,15 +77,15 @@ class Utils {
         }
 
         @JvmStatic
-        fun ping(address: InetAddress, port:Int): Int {
+        fun ping(hostname: String, port:Int): Int {
             val start = System.currentTimeMillis()
             val socket = Socket()
             try {
-                socket.connect(InetSocketAddress(address, port), 5000)
+                socket.connect(InetSocketAddress(hostname, port), 5000)
                 socket.close()
             } catch (e: Exception) {
                 e.printStackTrace()
-                print(address)
+                print(hostname)
                 return Int.MAX_VALUE
             }
             return (System.currentTimeMillis() - start).toInt()

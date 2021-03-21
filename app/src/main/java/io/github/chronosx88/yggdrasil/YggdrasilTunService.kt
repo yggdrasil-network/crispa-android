@@ -27,39 +27,32 @@ import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
 import java.net.Inet6Address
+import kotlin.concurrent.thread
 
 class YggdrasilTunService : VpnService() {
 
     private lateinit var ygg: Yggdrasil
+    private lateinit var tunInputStream: InputStream
+    private lateinit var tunOutputStream: OutputStream
+    private lateinit var address: String
     private var isClosed = false
 
     /** Maximum packet size is constrained by the MTU, which is given as a signed short/2 */
     private val MAX_PACKET_SIZE = Short.MAX_VALUE/2
+    private var tunInterface: ParcelFileDescriptor? = null
 
     companion object {
         private const val TAG = "Yggdrasil-service"
     }
-    private var tunInterface: ParcelFileDescriptor? = null
-    private var tunInputStream: InputStream? = null
-    private var tunOutputStream: OutputStream? = null
-    private var scope: CoroutineScope? = null
-    private var address: String? = null
-
-    private var mNotificationManager: NotificationManager? = null
 
     private val FOREGROUND_ID = 1338
-
-    override fun onCreate() {
-        super.onCreate()
-        mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val pi: PendingIntent? = intent?.getParcelableExtra(MainActivity.PARAM_PINTENT)
         when(intent?.getStringExtra(MainActivity.COMMAND)){
             MainActivity.STOP ->{
                 stopVpn(pi)
-                startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service stopped"))
+                foregroundNotification(FOREGROUND_ID, "Yggdrasil service stopped")
             }
             MainActivity.START ->{
                 val peers = deserializeStringList2PeerInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_PEERS))
@@ -67,7 +60,7 @@ class YggdrasilTunService : VpnService() {
                 val staticIP: Boolean = intent.getBooleanExtra(MainActivity.STATIC_IP, false)
                 ygg = Yggdrasil()
                 setupTunInterface(pi, peers, dns, staticIP)
-                startForeground(FOREGROUND_ID, foregroundNotification("Yggdrasil service started"))
+                foregroundNotification(FOREGROUND_ID, "Yggdrasil service started")
             }
             MainActivity.UPDATE_DNS ->{
                 val dns = deserializeStringList2DNSInfoSet(intent.getStringArrayListExtra(MainActivity.CURRENT_DNS))
@@ -84,11 +77,18 @@ class YggdrasilTunService : VpnService() {
     private fun setupIOStreams(dns: MutableSet<DNSInfo>){
         address = ygg.addressString
 
-        var builder = Builder()
-            .addAddress(address!!, 7)
-            .allowFamily(OsConstants.AF_INET)
-            .allowBypass()
-            .setMtu(MAX_PACKET_SIZE)
+        var builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Builder()
+                .addAddress(address, 7)
+                .allowFamily(OsConstants.AF_INET)
+                .allowBypass()
+                .setBlocking(true)
+                .setMtu(MAX_PACKET_SIZE)
+        } else {
+            Builder()
+                .addAddress(address, 7)
+                .setMtu(MAX_PACKET_SIZE)
+        }
         if (dns.size > 0) {
             for (d in dns) {
                 builder.addDnsServer(d.address)
@@ -100,15 +100,9 @@ class YggdrasilTunService : VpnService() {
         if(!hasIpv6DefaultRoute()){
             builder.addRoute("2000::",3)
         }
-        if(tunInterface!=null){
-            tunInterface!!.close()
-            tunInputStream!!.close()
-            tunOutputStream!!.close()
-        }
         tunInterface = builder.establish()
         tunInputStream = FileInputStream(tunInterface!!.fileDescriptor)
         tunOutputStream = FileOutputStream(tunInterface!!.fileDescriptor)
-
     }
 
     private fun setupTunInterface(
@@ -129,15 +123,13 @@ class YggdrasilTunService : VpnService() {
 
         setupIOStreams(dns)
 
-        val job = SupervisorJob()
-        scope = CoroutineScope(Dispatchers.Default + job)
-        scope!!.launch {
-            val buffer = ByteArray(2048)
+        thread(start = true) {
+            val buffer = ByteArray(MAX_PACKET_SIZE)
             while (!isClosed) {
                 readPacketsFromTun(yggConduitEndpoint, buffer)
             }
         }
-        scope!!.launch {
+        thread(start = true) {
             while (!isClosed) {
                 writePacketsToTun(yggConduitEndpoint)
             }
@@ -148,7 +140,7 @@ class YggdrasilTunService : VpnService() {
 
     private fun sendMeshPeerStatus(pi: PendingIntent?){
         class Token : TypeToken<List<Peer>>()
-        var add = ygg.addressString
+        ygg.addressString
         var meshPeers: List<Peer> = gson.fromJson(ygg.peersJSON, Token().type)
         val intent: Intent = Intent().putStringArrayListExtra(
             MainActivity.MESH_PEERS,
@@ -185,7 +177,7 @@ class YggdrasilTunService : VpnService() {
                     .putString(MainActivity.signingPublicKey, signingPublicKey)
                     .putString(MainActivity.encryptionPrivateKey, encryptionPrivateKey)
                     .putString(MainActivity.encryptionPublicKey, encryptionPublicKey)
-                    .putString(MainActivity.STATIC_IP,MainActivity.STATIC_IP).apply()
+                    .putString(MainActivity.STATIC_IP, MainActivity.STATIC_IP).apply()
             } else {
                 val signingPrivateKey = preferences.getString(MainActivity.signingPrivateKey, null)
                 val signingPublicKey = preferences.getString(MainActivity.signingPublicKey, null)
@@ -219,12 +211,8 @@ class YggdrasilTunService : VpnService() {
     private fun readPacketsFromTun(yggConduitEndpoint: ConduitEndpoint, buffer: ByteArray) {
         try {
             // Read the outgoing packet from the input stream.
-            val length = tunInputStream?.read(buffer) ?: 1
-            if (length > 0){
-                yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
-            } else {
-                Thread.sleep(100)
-            }
+            val length = tunInputStream.read(buffer)
+            yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -234,7 +222,7 @@ class YggdrasilTunService : VpnService() {
         val buffer = yggConduitEndpoint.recv()
         if(buffer!=null) {
             try {
-                tunOutputStream?.write(buffer)
+                tunOutputStream.write(buffer)
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -243,11 +231,9 @@ class YggdrasilTunService : VpnService() {
 
     private fun stopVpn(pi: PendingIntent?) {
         isClosed = true;
-        scope!!.coroutineContext.cancelChildren()
-        tunInputStream!!.close()
-        tunOutputStream!!.close()
+        tunInputStream.close()
+        tunOutputStream.close()
         tunInterface!!.close()
-        tunInterface = null
         Log.d(TAG,"Stop is running from service")
         ygg.stop()
         val intent: Intent = Intent()
@@ -265,14 +251,17 @@ class YggdrasilTunService : VpnService() {
     private fun hasIpv6DefaultRoute(): Boolean {
         val cm =
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networks = cm.allNetworks
-        for (network in networks) {
-            val linkProperties = cm.getLinkProperties(network)
-            if(linkProperties!=null) {
-                val routes = linkProperties.routes
-                for (route in routes) {
-                    if (route.isDefaultRoute && route.gateway is Inet6Address) {
-                        return true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val networks = cm.allNetworks
+
+            for (network in networks) {
+                val linkProperties = cm.getLinkProperties(network)
+                if(linkProperties!=null) {
+                    val routes = linkProperties.routes
+                    for (route in routes) {
+                        if (route.isDefaultRoute && route.gateway is Inet6Address) {
+                            return true
+                        }
                     }
                 }
             }
@@ -280,27 +269,29 @@ class YggdrasilTunService : VpnService() {
         return false
     }
 
-    private fun foregroundNotification(text: String): Notification? {
-        val channelId =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                createNotificationChannel(TAG, "Yggdrasil service")
-            } else {
-                // If earlier version channel ID is not used
-                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
-                ""
-            }
-        var intent = Intent(this, MainActivity::class.java)
-        var stackBuilder = TaskStackBuilder.create(this)
-        stackBuilder.addNextIntentWithParentStack(intent)
-        var pi = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
-        val b = NotificationCompat.Builder(this, channelId)
-        b.setOngoing(true)
-            .setContentIntent(pi)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText(text)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setTicker(text)
-        return b.build()
+    private fun foregroundNotification(FOREGROUND_ID: Int, text: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            val channelId =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    createNotificationChannel(TAG, "Yggdrasil service")
+                } else {
+                    // If earlier version channel ID is not used
+                    // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
+                    ""
+                }
+            var intent = Intent(this, MainActivity::class.java)
+            var stackBuilder = TaskStackBuilder.create(this)
+            stackBuilder.addNextIntentWithParentStack(intent)
+            var pi = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+            val b = NotificationCompat.Builder(this, channelId)
+            b.setOngoing(true)
+                .setContentIntent(pi)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(text)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setTicker(text)
+            startForeground(FOREGROUND_ID, b.build())
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

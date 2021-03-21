@@ -11,7 +11,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintStart_toEndOf="@+id/hostInfoText"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginLeft="10dp" />
     <TextView
             android:id="@+id/hostInfoText"
             android:layout_width="0dp"
@@ -24,7 +25,8 @@
             app:layout_constraintEnd_toStartOf="@+id/ping"
             app:layout_constraintStart_toEndOf="@+id/countryFlag"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginLeft="10dp" />
 
     <TextView
             android:id="@+id/ping"

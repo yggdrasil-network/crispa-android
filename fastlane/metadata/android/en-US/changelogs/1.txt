@@ -1,0 +1,4 @@
+v1.0
+ 1. Implemented VPN network interface for Yggdrasil tunneling
+ 2. Optimized memory buffer
+ 3. Added IPv6 info

@@ -15,6 +15,12 @@
             android:supportsRtl="true"
             tools:ignore="GoogleAppIndexingWarning">
         <activity
+                android:name=".AboutActivity"
+                android:parentActivityName=".MainActivity"
+                android:label="@string/title_activity_about"
+                android:theme="@style/AppTheme.NoActionBar"
+                android:screenOrientation="portrait"/>
+        <activity
                 android:name=".PeerListActivity"
                 android:parentActivityName=".MainActivity"
                 android:label="@string/title_activity_peer_list"
@@ -24,6 +30,12 @@
                 android:name=".DNSListActivity"
                 android:parentActivityName=".MainActivity"
                 android:label="@string/title_activity_dns_list"
+                android:theme="@style/AppTheme.NoActionBar"
+                android:screenOrientation="portrait"/>
+        <activity
+                android:name=".CopyLocalNodeInfoActivity"
+                android:parentActivityName=".MainActivity"
+                android:label="@string/title_activity_copy_local_node_info"
                 android:theme="@style/AppTheme.NoActionBar"
                 android:screenOrientation="portrait"/>
         <service
