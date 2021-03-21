@@ -161,7 +161,7 @@ class YggdrasilTunService : VpnService() {
         val blackList = arrayListOf<String>()
         blackList.add("")
         config["Peers"] = convertPeerInfoSet2PeerIdSet(peers)
-        config["Listen"] = ""
+        config["Listen"] = arrayListOf<String>()
         config["AdminListen"] = "tcp://localhost:9001"
         config["IfName"] = "tun0"
         if(staticIP) {

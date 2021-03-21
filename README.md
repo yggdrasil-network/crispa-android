@@ -9,3 +9,6 @@ The application for connecting to Yggdrasil network on Android.
 Once connected, you can access yggdrasil public services, as the application has peered automatically to default peers within the application.
 
 <img src="https://user-images.githubusercontent.com/8705683/87849784-62048a80-c8fc-11ea-8eb0-908e69d7595e.png" alt="" height="500" width="">
+
+New builds and updates here:
+https://t.me/yggdrasil_android
