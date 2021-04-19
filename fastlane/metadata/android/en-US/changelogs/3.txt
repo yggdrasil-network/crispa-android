@@ -1,0 +1,3 @@
+v1.3
+ 1. open MainActivity after Notification click, task (#12)
+ 2. new DNS only number issue

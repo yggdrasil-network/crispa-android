@@ -5,15 +5,18 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.webkit.URLUtil
 import android.widget.Button
 import android.widget.ListView
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.hbb20.BuildConfig
 import com.hbb20.CCPCountry
 import com.vincentbrison.openlibraries.android.dualcache.Builder
 import com.vincentbrison.openlibraries.android.dualcache.SizeOf
@@ -21,32 +24,30 @@ import com.vincentbrison.openlibraries.android.dualcache.JsonSerializer
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.Status
 import io.github.chronosx88.yggdrasil.models.config.DropDownAdapter
-import io.github.chronosx88.yggdrasil.models.config.Peer
 import io.github.chronosx88.yggdrasil.models.config.SelectPeerInfoListAdapter
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.ping
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.serializePeerInfoSet2StringList
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
 import java.lang.reflect.Type
 import java.net.InetAddress
 import java.net.URI
 import java.net.URL
+import java.net.UnknownHostException
 import java.nio.charset.Charset
 
 
 class PeerListActivity : AppCompatActivity() {
 
     companion object {
+        const val PEER_LIST = "PEER_LIST"
         const val PEER_LIST_URL = "https://publicpeers.neilalexander.dev/publicnodes.json"
         const val CACHE_NAME = "PEER_LIST_CACHE"
-        const val ONLINE_PEERINFO_LIST = "ONLINE_PEERINFO_LIST"
-        const val OFFLINE_PEERINFO_LIST = "OFFLINE_PEERINFO_LIST"
-        const val TEST_APP_VERSION = BuildConfig.VERSION_CODE;
+        const val ONLINE_PEERINFO_LIST = "online_peer_info_list"
+        const val OFFLINE_PEERINFO_LIST = "offline_peer_info_list"
+        const val TEST_APP_VERSION = BuildConfig.VERSION_CODE
         const val RAM_MAX_SIZE = 100000
         const val DISK_MAX_SIZE = 100000
     }
@@ -61,6 +62,8 @@ class PeerListActivity : AppCompatActivity() {
         }
     }
 
+    private var peerListUrl = PEER_LIST_URL
+    private var peerListPing = true
     var popup: PopupWindow? = null
     var adapter: DropDownAdapter? = null
 
@@ -70,6 +73,13 @@ class PeerListActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { _ ->
             addNewPeer()
+        }
+        val preferences =
+            PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+        var peerListUrl: String =
+            preferences.getString(PEER_LIST, "")!!
+        if(!peerListUrl.isNullOrBlank()){
+            this@PeerListActivity.peerListUrl = peerListUrl
         }
         var extras = intent.extras
         var peerList = findViewById<ListView>(R.id.peerList)
@@ -83,73 +93,20 @@ class PeerListActivity : AppCompatActivity() {
                 JsonSerializer(ArrayList<PeerInfo>().javaClass), baseContext
             ).build();
 
-        GlobalScope.launch {
+        GlobalScope.launch() {
             try {
                 var cp = deserializeStringList2PeerInfoSet(
                     extras!!.getStringArrayList(MainActivity.PEER_LIST)!!
                 )
-                for(pi in cp){
-                    var ping = ping(pi.address, pi.port)
+                for (pi in cp) {
+                    var ping = ping(pi.hostName, pi.port)
                     pi.ping = ping
                 }
                 try {
-                    var json = downloadJson(PEER_LIST_URL)
-                    var countries = CCPCountry.getLibraryMasterCountriesEnglish()
-                    val mapType: Type = object :
-                        TypeToken<Map<String?, Map<String, Status>>>() {}.type
-                    val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
-                    for ((country, peers) in peersMap.entries) {
-                        for ((peer, status) in peers) {
-                            if (status.up) {
-                                for (ccp in countries) {
-                                    if (ccp.name.toLowerCase()
-                                            .contains(country.replace(".md", "").replace("-", " "))
-                                    ) {
-                                        var url = URI(peer)
-                                        try {
-                                            var address = InetAddress.getByName(url.host)
-                                            var peerInfo =
-                                                PeerInfo(
-                                                    url.scheme,
-                                                    address,
-                                                    url.port,
-                                                    ccp.nameCode
-                                                )
-                                            var ping = ping(address, url.port)
-                                            peerInfo.ping = ping
-                                            if(cp.contains(peerInfo)){
-                                                continue
-                                            }
-                                            withContext(Dispatchers.Main) {
-                                                adapter.addItem(peerInfo)
-                                                if(adapter.count % 5 == 0) {
-                                                    adapter.sort()
-                                                }
-                                            }
-                                        } catch (e: Throwable){
-                                            e.printStackTrace()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    var allPeersList = adapter.getAllPeers()
-                    var cachePeerInfoList = mutableListOf<PeerInfo>()
-                    for(p in allPeersList){
-                        if(p.ping<Int.MAX_VALUE){
-                            cachePeerInfoList.add(p)
-                        }
-                    }
-                    if(cachePeerInfoList.size>0){
-                        peerInfoListCache.put(ONLINE_PEERINFO_LIST, cachePeerInfoList.toList())
-                    }
-                } catch (e: FileNotFoundException){
-                    e.printStackTrace()
-                    var onlinePeerInfoList = peerInfoListCache.get(ONLINE_PEERINFO_LIST)
-                    if(onlinePeerInfoList!=null) {
-                        for (peerInfo in onlinePeerInfoList) {
-                            var ping = ping(peerInfo.address, peerInfo.port)
+                    var peerInfoCache = peerInfoListCache.get(ONLINE_PEERINFO_LIST)
+                    if (peerInfoCache != null && peerInfoCache.isNotEmpty()) {
+                        for (peerInfo in peerInfoCache) {
+                            var ping = ping(peerInfo.hostName, peerInfo.port)
                             peerInfo.ping = ping
                             if (cp.contains(peerInfo)) {
                                 continue
@@ -162,14 +119,114 @@ class PeerListActivity : AppCompatActivity() {
                             }
                         }
                     }
+                    var json = downloadJson(this@PeerListActivity.peerListUrl)
+                    var countries = CCPCountry.getLibraryMasterCountriesEnglish()
+                    val mapType: Type = object :
+                        TypeToken<Map<String?, Map<String, Status>>>() {}.type
+                    val peersMap: Map<String, Map<String, Status>> = Gson().fromJson(json, mapType)
+                    var cachePeerInfoList = mutableListOf<PeerInfo>()
+                    for ((country, peers) in peersMap.entries) {
+                        for ((peer, status) in peers) {
+                            if (status.up) {
+                                for (ccp in countries) {
+                                    if (ccp.name.toLowerCase()
+                                            .contains(country.replace(".md", "").replace("-", " "))
+                                    ) {
+                                        if(!peerListPing){
+                                            return@launch
+                                        }
+                                        var url = URI(peer)
+                                        try {
+                                            var address = InetAddress.getByName(url.host)
+                                            var peerInfo =
+                                                PeerInfo(
+                                                    url.scheme,
+                                                    address,
+                                                    url.port,
+                                                    ccp.nameCode
+                                                )
+                                            var ping = ping(url.host, url.port)
+                                            peerInfo.ping = ping
+                                            if (cp.contains(peerInfo)) {
+                                                continue
+                                            }
+                                            if (peerInfo.ping < Int.MAX_VALUE) {
+                                                cachePeerInfoList.add(peerInfo)
+                                            }
+                                            withContext(Dispatchers.Main) {
+                                                adapter.addItem(peerInfo)
+                                                if (adapter.count % 5 == 0) {
+                                                    adapter.sort()
+                                                    if (cachePeerInfoList.size > 0) {
+                                                        peerInfoListCache.put(
+                                                            ONLINE_PEERINFO_LIST,
+                                                            cachePeerInfoList.toList()
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        } catch (e: Throwable) {
+                                            e.printStackTrace()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    when (e) {
+                        is FileNotFoundException, is UnknownHostException -> {
+                            var onlinePeerInfoList = peerInfoListCache.get(ONLINE_PEERINFO_LIST)
+                            if (onlinePeerInfoList != null) {
+                                for (peerInfo in onlinePeerInfoList) {
+                                    var ping = ping(peerInfo.hostName, peerInfo.port)
+                                    peerInfo.ping = ping
+                                    if (cp.contains(peerInfo)) {
+                                        continue
+                                    }
+                                    withContext(Dispatchers.Main) {
+                                        adapter.addItem(peerInfo)
+                                        if (adapter.count % 5 == 0) {
+                                            adapter.sort()
+                                        }
+                                    }
+                                }
+                            }
+                            e.printStackTrace()
+                        }
+                        else -> e.printStackTrace()
+                    }
                 }
                 var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
                 withContext(Dispatchers.Main) {
                     adapter.addAll(0, currentPeers)
                 }
-            } catch (e: Throwable){
+            } catch (e: Throwable) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun editPeerListUrl() {
+        val view: View = LayoutInflater.from(this).inflate(R.layout.edit_peer_list_url_dialog, null)
+        val ab: AlertDialog.Builder = AlertDialog.Builder(this)
+        ab.setCancelable(true).setView(view)
+        var ad = ab.show()
+        var saveButton = view.findViewById<Button>(R.id.save)
+        var urlInput = view.findViewById<TextView>(R.id.urlInput)
+        urlInput.text = peerListUrl
+        saveButton.setOnClickListener{
+
+            var url = urlInput.text.toString()
+            if(!URLUtil.isValidUrl(url)){
+                urlInput.error = "The URL is invalid!"
+                return@setOnClickListener;
+            }
+            peerListUrl = url
+            val preferences =
+                PreferenceManager.getDefaultSharedPreferences(this.baseContext)
+            preferences.edit().putString(PEER_LIST, peerListUrl).apply()
+            ad.dismiss()
         }
     }
 
@@ -226,7 +283,7 @@ class PeerListActivity : AppCompatActivity() {
             GlobalScope.launch {
                 var pi = PeerInfo(schema, InetAddress.getByName(ip), port, ccp)
                 try {
-                    var ping = ping(pi.address, pi.port)
+                    var ping = ping(pi.hostName, pi.port)
                     pi.ping = ping
                 } catch (e: Throwable){
                     pi.ping = Int.MAX_VALUE
@@ -277,12 +334,14 @@ class PeerListActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.save, menu)
+        menuInflater.inflate(R.menu.save_peers, menu)
         val item = menu.findItem(R.id.saveItem) as MenuItem
         item.setActionView(R.layout.menu_save)
         val saveButton = item
             .actionView.findViewById<Button>(R.id.saveButton)
         saveButton.setOnClickListener {
+            saveButton.isClickable = false
+            cancelPeerListPing()
             val result = Intent(this, MainActivity::class.java)
             var adapter = findViewById<ListView>(R.id.peerList).adapter as SelectPeerInfoListAdapter
             val selectedPeers = adapter.getSelectedPeers()
@@ -290,7 +349,24 @@ class PeerListActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK, result)
             finish()
         }
+
+        val editUrl = menu.findItem(R.id.editUrlItem) as MenuItem
+        editUrl.setActionView(R.layout.menu_edit_url)
+        val editUrlButton = editUrl
+            .actionView.findViewById<Button>(R.id.editUrlButton)
+        editUrlButton.setOnClickListener {
+            editPeerListUrl()
+        }
         return true
+    }
+
+    private fun cancelPeerListPing() {
+        peerListPing = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+        cancelPeerListPing()
     }
 }
 
@@ -299,9 +375,6 @@ class SizeOfPeerList: SizeOf<List<PeerInfo>> {
     override fun sizeOf(obj: List<PeerInfo>): Int{
         var size = 0
         for (o in obj) {
-            if (o.address != null) {
-                size += o.address.toString().length * 2
-            }
             if (o.hostName != null) {
                 size += o.hostName.length * 2
             }
@@ -317,5 +390,4 @@ class SizeOfPeerList: SizeOf<List<PeerInfo>> {
         }
         return size
     }
-
 }
