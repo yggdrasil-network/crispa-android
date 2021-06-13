@@ -1,5 +1,5 @@
 GOPATH=$(shell go env GOPATH)
-
+export GO111MODULE=off
 all:
 	-go get -u github.com/yggdrasil-network/yggdrasil-go;
 	-cd $(GOPATH)/src/github.com/yggdrasil-network/yggdrasil-go; \
