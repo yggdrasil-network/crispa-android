@@ -34,10 +34,8 @@ class MainActivity : AppCompatActivity() {
         const val STATUS_PEERS_UPDATE = 12
         const val MESH_PEERS = "MESH_PEERS"
         const val STATIC_IP = "STATIC_IP_FLAG"
-        const val signingPrivateKey = "signingPrivateKey"
-        const val signingPublicKey = "signingPublicKey"
-        const val encryptionPrivateKey = "encryptionPrivateKey"
-        const val encryptionPublicKey = "encryptionPublicKey"
+        const val privateKey = "privateKey"
+        const val publicKey = "publicKey"
         const val COMMAND = "COMMAND"
         const val STOP = "STOP"
         const val START = "START"

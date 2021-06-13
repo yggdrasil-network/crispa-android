@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import io.github.chronosx88.yggdrasil.models.NodeInfo
 import io.github.chronosx88.yggdrasil.models.config.CopyInfoAdapter
-import io.github.chronosx88.yggdrasil.models.config.SelectDNSInfoListAdapter
 
 class CopyLocalNodeInfoActivity: AppCompatActivity() {
 
@@ -17,10 +16,9 @@ class CopyLocalNodeInfoActivity: AppCompatActivity() {
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
         val ipv6Address = intent.extras!!.getString(MainActivity.IPv6, "")
-        val signingPublicKey = preferences.getString(MainActivity.signingPublicKey, "")
-        val encryptionPublicKey = preferences.getString(MainActivity.encryptionPublicKey, "")
+        val publicKey = preferences.getString(MainActivity.publicKey, "")
         var nodeInfoListView = findViewById<ListView>(R.id.nodeInfoList)
-        val nodeInfoList = listOf<NodeInfo>(NodeInfo("IP address", ipv6Address!!), NodeInfo("Encryption Public Key", encryptionPublicKey!!), NodeInfo("Signing Public Key", signingPublicKey!!));
+        val nodeInfoList = listOf<NodeInfo>(NodeInfo("IP address", ipv6Address!!), NodeInfo("Public Key", publicKey!!));
         var adapter = CopyInfoAdapter(this, nodeInfoList)
         nodeInfoListView.adapter = adapter
     }
