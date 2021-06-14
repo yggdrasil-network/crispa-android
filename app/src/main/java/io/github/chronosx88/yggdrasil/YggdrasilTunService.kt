@@ -145,7 +145,6 @@ class YggdrasilTunService : VpnService() {
             convertPeer2PeerStringList(meshPeers)
         );
         pi?.send(this, MainActivity.STATUS_PEERS_UPDATE, intent)
-
     }
 
     private fun fixConfig(

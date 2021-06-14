@@ -3,6 +3,7 @@ package io.github.chronosx88.yggdrasil.models.config
 import com.google.gson.Gson
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
+import org.acra.ACRA
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -113,6 +114,7 @@ class Utils {
         @JvmStatic
         fun deserializePeerStringList2PeerInfoSet(list: List<String>?): MutableSet<PeerInfo> {
             var gson = Gson()
+            ACRA.errorReporter.putCustomData("Peer list", gson.toJson(list))
             var out = mutableSetOf<PeerInfo>()
             if (list != null) {
                 for(s in list) {
