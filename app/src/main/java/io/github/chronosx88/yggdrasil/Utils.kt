@@ -11,14 +11,12 @@ val gson = Gson()
 fun createNativeYggConfig(config: Config): NodeConfig {
     val nativeConfig = NodeConfig()
     nativeConfig.adminListen = config.adminListen
-    nativeConfig.encryptionPrivateKey = config.encryptionPrivateKey
-    nativeConfig.encryptionPublicKey = config.encryptionPublicKey
+    nativeConfig.privateKey = config.privateKey
+    nativeConfig.publicKey = config.publicKey
     //nativeConfig.ifMTU = config.ifMTU
     nativeConfig.ifName = config.ifName
     //nativeConfig.ifTAPMode = config.ifTAPMode
     nativeConfig.nodeInfoPrivacy = config.nodeInfoPrivacy
-    nativeConfig.signingPrivateKey = config.signingPrivateKey
-    nativeConfig.signingPublicKey = config.signingPublicKey
     return nativeConfig
 }
 

@@ -14,7 +14,6 @@ import androidx.core.app.NotificationCompat
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import dummy.ConduitEndpoint
 import io.github.chronosx88.yggdrasil.models.DNSInfo
 import io.github.chronosx88.yggdrasil.models.PeerInfo
 import io.github.chronosx88.yggdrasil.models.config.Peer
@@ -22,7 +21,6 @@ import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.convertPeer2
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.convertPeerInfoSet2PeerIdSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2DNSInfoSet
 import io.github.chronosx88.yggdrasil.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
-import kotlinx.coroutines.*
 import mobile.Mobile
 import mobile.Yggdrasil
 import java.io.*
@@ -119,19 +117,19 @@ class YggdrasilTunService : VpnService() {
 
         configJson = gson.toJson(config).toByteArray()
 
-        var yggConduitEndpoint = ygg.startJSON(configJson)
+        ygg.startJSON(configJson)
 
         setupIOStreams(dns)
 
         thread(start = true) {
             val buffer = ByteArray(MAX_PACKET_SIZE)
             while (!isClosed) {
-                readPacketsFromTun(yggConduitEndpoint, buffer)
+                readPacketsFromTun(buffer)
             }
         }
         thread(start = true) {
             while (!isClosed) {
-                writePacketsToTun(yggConduitEndpoint)
+                writePacketsToTun()
             }
         }
         val intent: Intent = Intent().putExtra(MainActivity.IPv6, address)
@@ -147,7 +145,6 @@ class YggdrasilTunService : VpnService() {
             convertPeer2PeerStringList(meshPeers)
         );
         pi?.send(this, MainActivity.STATUS_PEERS_UPDATE, intent)
-
     }
 
     private fun fixConfig(
@@ -168,37 +165,27 @@ class YggdrasilTunService : VpnService() {
             val preferences =
                 PreferenceManager.getDefaultSharedPreferences(this.baseContext)
             if(preferences.getString(MainActivity.STATIC_IP, null)==null) {
-                val encryptionPublicKey = config["EncryptionPublicKey"].toString()
-                val encryptionPrivateKey = config["EncryptionPrivateKey"].toString()
-                val signingPublicKey = config["SigningPublicKey"].toString()
-                val signingPrivateKey = config["SigningPrivateKey"].toString()
+                val publicKey = config["PublicKey"].toString()
+                val privateKey = config["PrivateKey"].toString()
                 preferences.edit()
-                    .putString(MainActivity.signingPrivateKey, signingPrivateKey)
-                    .putString(MainActivity.signingPublicKey, signingPublicKey)
-                    .putString(MainActivity.encryptionPrivateKey, encryptionPrivateKey)
-                    .putString(MainActivity.encryptionPublicKey, encryptionPublicKey)
+                    .putString(MainActivity.privateKey, privateKey)
+                    .putString(MainActivity.publicKey, publicKey)
                     .putString(MainActivity.STATIC_IP, MainActivity.STATIC_IP).apply()
             } else {
-                val signingPrivateKey = preferences.getString(MainActivity.signingPrivateKey, null)
-                val signingPublicKey = preferences.getString(MainActivity.signingPublicKey, null)
-                val encryptionPrivateKey = preferences.getString(MainActivity.encryptionPrivateKey, null)
-                val encryptionPublicKey = preferences.getString(MainActivity.encryptionPublicKey, null)
+                val privateKey = preferences.getString(MainActivity.privateKey, null)
+                val publicKey = preferences.getString(MainActivity.publicKey, null)
 
-                config["SigningPrivateKey"] = signingPrivateKey
-                config["SigningPublicKey"] = signingPublicKey
-                config["EncryptionPrivateKey"] = encryptionPrivateKey
-                config["EncryptionPublicKey"] = encryptionPublicKey
+                config["PrivateKey"] = privateKey
+                config["PublicKey"] = publicKey
             }
         }
-
-        (config["SessionFirewall"] as MutableMap<Any, Any>)["Enable"] = false
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromDirect"] = true
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromRemote"] = true
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["AlwaysAllowOutbound"] = true
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["WhitelistEncryptionPublicKeys"] = whiteList
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["BlacklistEncryptionPublicKeys"] = blackList
 
-        (config["SwitchOptions"] as MutableMap<Any, Any>)["MaxTotalQueueSize"] = 4194304
+        //(config["SwitchOptions"] as MutableMap<Any, Any>)["MaxTotalQueueSize"] = 4194304
         if (config["AutoStart"] == null) {
             val tmpMap = emptyMap<String, Boolean>().toMutableMap()
             tmpMap["WiFi"] = false
@@ -208,18 +195,18 @@ class YggdrasilTunService : VpnService() {
         return config
     }
 
-    private fun readPacketsFromTun(yggConduitEndpoint: ConduitEndpoint, buffer: ByteArray) {
+    private fun readPacketsFromTun(buffer: ByteArray) {
         try {
             // Read the outgoing packet from the input stream.
             val length = tunInputStream.read(buffer)
-            yggConduitEndpoint.send(buffer.sliceArray(IntRange(0, length - 1)))
+            ygg.send(buffer.sliceArray(IntRange(0, length - 1)))
         } catch (e: IOException) {
             e.printStackTrace()
         }
     }
 
-    private fun writePacketsToTun(yggConduitEndpoint: ConduitEndpoint) {
-        val buffer = yggConduitEndpoint.recv()
+    private fun writePacketsToTun() {
+        val buffer = ygg.recv()
         if(buffer!=null) {
             try {
                 tunOutputStream.write(buffer)

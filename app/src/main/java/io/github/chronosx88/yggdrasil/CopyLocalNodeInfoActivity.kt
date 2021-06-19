@@ -17,15 +17,15 @@ class CopyLocalNodeInfoActivity: AppCompatActivity() {
         val preferences =
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
         val ipv6Address = intent.extras!!.getString(MainActivity.IPv6, "")
-        val signingPublicKey = preferences.getString(MainActivity.signingPublicKey, "***")
-        val encryptionPublicKey = preferences.getString(MainActivity.encryptionPublicKey, "***")
-        var nodeInfoListView = findViewById<RecyclerView>(R.id.node_info_list)
-        val nodeInfoList = listOf<Pair<String, String>>(Pair("IP address", ipv6Address!!), Pair("Encryption Public Key", encryptionPublicKey!!), Pair("Signing Public Key", signingPublicKey!!));
+        val publicKey = preferences.getString(MainActivity.publicKey, "")
+        var nodeInfoListView = findViewById<ListView>(R.id.nodeInfoList)
+        val nodeInfoList = listOf<NodeInfo>(NodeInfo("IP address", ipv6Address!!), NodeInfo("Public Key", publicKey!!));
         val adapter =
             NodeInfoListAdapter(
                 this,
                 nodeInfoList.toTypedArray()
             )
+
         nodeInfoListView.adapter = adapter
         nodeInfoListView.layoutManager = LinearLayoutManager(this)
 
