@@ -1,11 +1,12 @@
 package io.github.chronosx88.yggdrasil
 
 import android.os.Bundle
-import android.widget.ListView
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import io.github.chronosx88.yggdrasil.models.NodeInfo
-import io.github.chronosx88.yggdrasil.models.config.CopyInfoAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import io.github.chronosx88.yggdrasil.models.config.NodeInfoListAdapter
 
 class CopyLocalNodeInfoActivity: AppCompatActivity() {
 
@@ -19,8 +20,21 @@ class CopyLocalNodeInfoActivity: AppCompatActivity() {
         val publicKey = preferences.getString(MainActivity.publicKey, "")
         var nodeInfoListView = findViewById<ListView>(R.id.nodeInfoList)
         val nodeInfoList = listOf<NodeInfo>(NodeInfo("IP address", ipv6Address!!), NodeInfo("Public Key", publicKey!!));
-        var adapter = CopyInfoAdapter(this, nodeInfoList)
+        val adapter =
+            NodeInfoListAdapter(
+                this,
+                nodeInfoList.toTypedArray()
+            )
+
         nodeInfoListView.adapter = adapter
+        nodeInfoListView.layoutManager = LinearLayoutManager(this)
+
+        getSupportActionBar()?.setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar()?.setDisplayShowHomeEnabled(true);
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
 }

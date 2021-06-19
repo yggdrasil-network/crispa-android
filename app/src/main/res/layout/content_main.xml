@@ -16,7 +16,8 @@
             android:orientation="vertical"
             app:layout_constraintTop_toTopOf="parent"
             android:animateLayoutChanges="true"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:elevation="8dp">
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -54,8 +55,11 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/nodeInfo"
+                android:layout_marginBottom="10dp"
+                android:layout_marginEnd="5dp"
                 android:text=""
-                android:textColor="@color/white"/>
+                android:textColor="@color/white"
+                android:layout_marginRight="5dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -67,7 +71,8 @@
             android:gravity="left"
             android:paddingLeft="20dp"
             android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/ipLayout">
+            app:layout_constraintTop_toBottomOf="@id/ipLayout"
+            android:elevation="8dp">
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -114,7 +119,8 @@
             android:gravity="left"
             android:paddingLeft="20dp"
             android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/peerLayout">
+            app:layout_constraintTop_toBottomOf="@id/peerLayout"
+            android:elevation="8dp">
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
