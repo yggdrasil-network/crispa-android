@@ -119,22 +119,18 @@ class Utils {
             if (list != null) {
                 for(s in list) {
                     var p = gson.fromJson(s, Peer::class.java)
-                    if(p.endpoint == "(self)"){
-                        out.add(PeerInfo(p.protocol, InetAddress.getByName("localhost"), p.port, null, true))
-                    } else {
-                        var fixWlanPart = p.endpoint.substring(p.endpoint.indexOf('%'), p.endpoint.indexOf(']'))
-                        var fixedUrlString = p.endpoint.replace(fixWlanPart, "")
-                        var url = URI(fixedUrlString)
-                        out.add(
-                            PeerInfo(
-                                url.scheme,
-                                InetAddress.getByName(url.host),
-                                url.port,
-                                null,
-                                true
-                            )
+                    var fixWlanPart = p.remote.substring(p.remote.indexOf('%'), p.remote.indexOf(']'))
+                    var fixedUrlString = p.remote.replace(fixWlanPart, "")
+                    var url = URI(fixedUrlString)
+                    out.add(
+                        PeerInfo(
+                            url.scheme,
+                            InetAddress.getByName(url.host),
+                            url.port,
+                            null,
+                            true
                         )
-                    }
+                    )
                 }
             }
             return out

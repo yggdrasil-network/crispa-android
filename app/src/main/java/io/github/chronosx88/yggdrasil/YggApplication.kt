@@ -9,6 +9,11 @@ import org.acra.ktx.initAcra
 import org.acra.sender.HttpSender
 
 class YggApplication : Application() {
+
+    companion object {
+        const val ACRA_BACKEND_URL = "xxx"
+    }
+
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
@@ -18,9 +23,9 @@ class YggApplication : Application() {
             reportFormat = StringFormat.JSON
             //each plugin you chose above can be configured in a block like this:
             httpSender {
-                uri = "http://<host>/report"
-                basicAuthLogin="***"
-                basicAuthPassword = "***"
+                uri = ACRA_BACKEND_URL
+                basicAuthLogin="KOF7CEnt5tfTqIhj"
+                basicAuthPassword = "F4cCIqo9EjpihcPt"
                 httpMethod = HttpSender.Method.POST
             }
             dialog {

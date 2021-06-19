@@ -3,11 +3,11 @@ package io.github.chronosx88.yggdrasil.models.config
 import com.google.gson.annotations.SerializedName
 
 data class Peer (
-    //Example [{"PublicKey":[154,201,118,156,19,74,134,115,94,159,76,86,36,192,221,105,220,254,226,161,108,226,17,192,75,243,225,15,42,195,155,2],"Endpoint":"(self)","BytesSent":0,"BytesRecvd":0,"Protocol":"self","Port":0,"Uptime":209900460}]
-    @SerializedName("Endpoint") var endpoint : String,
+    //Example [{"Key":"JQZIX3KIamcp/6S9rycKiAGyg9MK7U6h8UUY5ej36fY=","Root":"AAABERGfllXfKNJshDs/8uzKEIFkFEccE16dmZV/cAo=","Coords":[2,4],"Port":1,"Remote":"tcp://[fe80::5207:4518:4378:7f1%wlan0]:57541","IP":"202:d7cd:bd04:6bbc:acc6:b002:da12:86c7"},{"Key":"DCNBiKAV1xr72JAFUgNrOYfY6Qm/f0Nq6ESZTSLn1eo=","Root":"AAABERGfllXfKNJshDs/8uzKEIFkFEccE16dmZV/cAo=","Coords":[2,4,1],"Port":2,"Remote":"tcp://[fe80::1c39:839:90a5:6ef%wlan0]:1108","IP":"204:7b97:ceeb:fd45:1ca0:84ed:ff55:bf92"}]
+    @SerializedName("Key") var key : String,
+    @SerializedName("Root") var root : String,
+    //@SerializedName("Coords") var uptime : Long,
     @SerializedName("Port") var port : Int,
-    @SerializedName("Uptime") var uptime : Long,
-    @SerializedName("Protocol") var protocol : String,
-    @SerializedName("BytesSent") var bytesSent : Long,
-    @SerializedName("BytesRecvd") var bytesReceived : Long
+    @SerializedName("Remote") var remote : String,
+    @SerializedName("IP") var ip : String
 )

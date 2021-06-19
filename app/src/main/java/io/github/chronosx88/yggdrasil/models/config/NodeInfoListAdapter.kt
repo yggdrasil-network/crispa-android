@@ -10,8 +10,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import io.github.chronosx88.yggdrasil.R
+import io.github.chronosx88.yggdrasil.models.NodeInfo
 
-class NodeInfoListAdapter(private val context: Context, private val infoSet: Array<Pair<String, String>>) :
+class NodeInfoListAdapter(private val context: Context, private val infoSet: Array<NodeInfo>) :
     RecyclerView.Adapter<NodeInfoListAdapter.ViewHolder>() {
 
     class ViewHolder(private val context: Context, view: View) : RecyclerView.ViewHolder(view) {
@@ -50,8 +51,8 @@ class NodeInfoListAdapter(private val context: Context, private val infoSet: Arr
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        viewHolder.key.text = infoSet[position].first
-        viewHolder.value.text = infoSet[position].second
+        viewHolder.key.text = infoSet[position].key
+        viewHolder.value.text = infoSet[position].value
     }
 
     // Return the size of your dataset (invoked by the layout manager)

@@ -1,11 +1,12 @@
 package io.github.chronosx88.yggdrasil
 
 import android.os.Bundle
-import android.view.MenuItem
+import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.chronosx88.yggdrasil.models.NodeInfo
 import io.github.chronosx88.yggdrasil.models.config.NodeInfoListAdapter
 
 class CopyLocalNodeInfoActivity: AppCompatActivity() {
@@ -18,8 +19,8 @@ class CopyLocalNodeInfoActivity: AppCompatActivity() {
             PreferenceManager.getDefaultSharedPreferences(this.baseContext)
         val ipv6Address = intent.extras!!.getString(MainActivity.IPv6, "")
         val publicKey = preferences.getString(MainActivity.publicKey, "")
-        var nodeInfoListView = findViewById<ListView>(R.id.nodeInfoList)
-        val nodeInfoList = listOf<NodeInfo>(NodeInfo("IP address", ipv6Address!!), NodeInfo("Public Key", publicKey!!));
+        var nodeInfoListView = findViewById<RecyclerView>(R.id.node_info_list)
+        val nodeInfoList = listOf(NodeInfo("IP address", ipv6Address!!), NodeInfo("Public Key", publicKey!!));
         val adapter =
             NodeInfoListAdapter(
                 this,

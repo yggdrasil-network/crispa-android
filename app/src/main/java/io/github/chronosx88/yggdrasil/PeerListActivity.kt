@@ -43,7 +43,7 @@ class PeerListActivity : AppCompatActivity() {
 
     companion object {
         const val PEER_LIST = "PEER_LIST"
-        const val PEER_LIST_URL = "https://publicpeers.neilalexander.dev/publicnodes.json"
+        const val PEER_LIST_URL = "xxx"
         const val CACHE_NAME = "PEER_LIST_CACHE"
         const val ONLINE_PEERINFO_LIST = "online_peer_info_list"
         const val OFFLINE_PEERINFO_LIST = "offline_peer_info_list"
