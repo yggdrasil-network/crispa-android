@@ -42,6 +42,7 @@ class YggdrasilTunService : VpnService() {
 
     companion object {
         private const val TAG = "Yggdrasil-service"
+        public const val IS_VPN_SERVICE_STOPPED = "VPN_STATUS"
     }
 
     private val FOREGROUND_ID = 1338
@@ -273,6 +274,7 @@ class YggdrasilTunService : VpnService() {
                     ""
                 }
             var intent = Intent(this, MainActivity::class.java)
+            intent.putExtra(IS_VPN_SERVICE_STOPPED, isClosed);
             var stackBuilder = TaskStackBuilder.create(this)
             stackBuilder.addNextIntentWithParentStack(intent)
             var pi = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)

@@ -398,6 +398,9 @@ class MainActivity : AppCompatActivity() {
 
     //TODO reimplement it
     private fun isYggServiceRunning(context: Context): Boolean {
+        if(this.intent.hasExtra(YggdrasilTunService.IS_VPN_SERVICE_STOPPED)){
+            return !this.intent.getBooleanExtra(YggdrasilTunService.IS_VPN_SERVICE_STOPPED, true)
+        }
         val manager =
             context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Int.MAX_VALUE)) {
