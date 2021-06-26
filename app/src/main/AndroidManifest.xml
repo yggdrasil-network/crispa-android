@@ -42,6 +42,7 @@
                 android:screenOrientation="portrait"/>
         <service
                 android:name=".YggdrasilTunService"
+                android:stopWithTask="true"
                 android:enabled="true"
                 android:exported="true"
                 android:permission="android.permission.BIND_VPN_SERVICE">
