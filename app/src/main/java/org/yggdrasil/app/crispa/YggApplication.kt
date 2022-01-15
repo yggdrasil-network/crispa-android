@@ -9,11 +9,6 @@ import org.acra.ktx.initAcra
 import org.acra.sender.HttpSender
 
 class YggApplication : Application() {
-
-    companion object {
-        const val ACRA_BACKEND_URL = "http://acrarium.rivchain.org/acrarium-1.4.6/report"
-    }
-
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
@@ -23,9 +18,9 @@ class YggApplication : Application() {
             reportFormat = StringFormat.JSON
             //each plugin you chose above can be configured in a block like this:
             httpSender {
-                uri = ACRA_BACKEND_URL
-                basicAuthLogin="KOF7CEnt5tfTqIhj"
-                basicAuthPassword = "F4cCIqo9EjpihcPt"
+                uri = BuildConfig.ACRA_BACKEND_URL
+                basicAuthLogin = BuildConfig.ACRA_LOGIN
+                basicAuthPassword = BuildConfig.ACRA_PASSWORD
                 httpMethod = HttpSender.Method.POST
             }
             dialog {
