@@ -1,0 +1,3 @@
+[submodule "yggdrasil/yggdrasil-extras"]
+	path = yggdrasil/yggdrasil-extras
+	url = https://github.com/yggdrasil-network/yggdrasil-extras
