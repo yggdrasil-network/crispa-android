@@ -37,6 +37,8 @@ import java.net.URI
 import java.net.URL
 import java.net.UnknownHostException
 import java.nio.charset.Charset
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class PeerListActivity : AppCompatActivity() {
@@ -83,7 +85,9 @@ class PeerListActivity : AppCompatActivity() {
         }
         var extras = intent.extras
         var peerList = findViewById<ListView>(R.id.peerList)
-        var adapter = SelectPeerInfoListAdapter(this, arrayListOf(), mutableSetOf())
+
+        val alreadySelectedPeers = deserializeStringList2PeerInfoSet(extras!!.getStringArrayList(MainActivity.PEER_LIST)!!)
+        var adapter = SelectPeerInfoListAdapter(this, arrayListOf(), alreadySelectedPeers)
         peerList.adapter = adapter
         var peerInfoListCache = Builder<List<PeerInfo>>(CACHE_NAME, TEST_APP_VERSION)
             .enableLog()
@@ -95,10 +99,7 @@ class PeerListActivity : AppCompatActivity() {
 
         GlobalScope.launch() {
             try {
-                var cp = deserializeStringList2PeerInfoSet(
-                    extras!!.getStringArrayList(MainActivity.PEER_LIST)!!
-                )
-                for (pi in cp) {
+                for (pi in alreadySelectedPeers) {
                     var ping = ping(pi.hostName, pi.port)
                     pi.ping = ping
                 }
@@ -108,7 +109,7 @@ class PeerListActivity : AppCompatActivity() {
                         for (peerInfo in peerInfoCache) {
                             var ping = ping(peerInfo.hostName, peerInfo.port)
                             peerInfo.ping = ping
-                            if (cp.contains(peerInfo)) {
+                            if (alreadySelectedPeers.contains(peerInfo)) {
                                 continue
                             }
                             withContext(Dispatchers.Main) {
@@ -129,7 +130,7 @@ class PeerListActivity : AppCompatActivity() {
                         for ((peer, status) in peers) {
                             if (status.up) {
                                 for (ccp in countries) {
-                                    if (ccp.name.toLowerCase()
+                                    if (ccp.name.lowercase(Locale.getDefault())
                                             .contains(country.replace(".md", "").replace("-", " "))
                                     ) {
                                         if(!peerListPing){
@@ -147,7 +148,7 @@ class PeerListActivity : AppCompatActivity() {
                                                 )
                                             var ping = ping(url.host, url.port)
                                             peerInfo.ping = ping
-                                            if (cp.contains(peerInfo)) {
+                                            if (alreadySelectedPeers.contains(peerInfo)) {
                                                 continue
                                             }
                                             if (peerInfo.ping < Int.MAX_VALUE) {
@@ -181,7 +182,7 @@ class PeerListActivity : AppCompatActivity() {
                                 for (peerInfo in onlinePeerInfoList) {
                                     var ping = ping(peerInfo.hostName, peerInfo.port)
                                     peerInfo.ping = ping
-                                    if (cp.contains(peerInfo)) {
+                                    if (alreadySelectedPeers.contains(peerInfo)) {
                                         continue
                                     }
                                     withContext(Dispatchers.Main) {
@@ -197,7 +198,7 @@ class PeerListActivity : AppCompatActivity() {
                         else -> e.printStackTrace()
                     }
                 }
-                var currentPeers = ArrayList(cp.sortedWith(compareBy { it.ping }))
+                var currentPeers = ArrayList(alreadySelectedPeers.sortedWith(compareBy { it.ping }))
                 withContext(Dispatchers.Main) {
                     adapter.addAll(0, currentPeers)
                 }
