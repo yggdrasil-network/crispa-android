@@ -164,6 +164,7 @@ class YggdrasilTunService : VpnService() {
         config["Listen"] = arrayListOf<String>()
         config["AdminListen"] = "tcp://localhost:9001"
         config["IfName"] = "tun0"
+        config["IfMTU"] = 65535
         if(staticIP) {
             val preferences =
                 PreferenceManager.getDefaultSharedPreferences(this.baseContext)
@@ -182,12 +183,17 @@ class YggdrasilTunService : VpnService() {
                 config["PublicKey"] = publicKey
             }
         }
+        var multicastInterface = emptyMap<String, Any>().toMutableMap()
+        multicastInterface["Regex"] = ".*"
+        multicastInterface["Beacon"] = true
+        multicastInterface["Listen"] = true
+        multicastInterface["Port"] = 0
+        (config["MulticastInterfaces"] as MutableList<Any>)[0] = multicastInterface
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromDirect"] = true
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["AllowFromRemote"] = true
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["AlwaysAllowOutbound"] = true
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["WhitelistEncryptionPublicKeys"] = whiteList
         //(config["SessionFirewall"] as MutableMap<Any, Any>)["BlacklistEncryptionPublicKeys"] = blackList
-
         //(config["SwitchOptions"] as MutableMap<Any, Any>)["MaxTotalQueueSize"] = 4194304
         if (config["AutoStart"] == null) {
             val tmpMap = emptyMap<String, Boolean>().toMutableMap()
