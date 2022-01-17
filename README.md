@@ -1,14 +1,14 @@
 # Yggdrasil for Android
 
-The application for connecting to Yggdrasil network on Android.
+The application for connecting to Yggdrasil Network on Android.
 
 ## Screenshots
 
-<img src="https://user-images.githubusercontent.com/8705683/87849631-2c12d680-c8fb-11ea-81eb-6357e92eb690.png" alt="" height="500" width=""> <img src="https://user-images.githubusercontent.com/8705683/87849706-a04d7a00-c8fb-11ea-9eaa-51a3d3d643b9.png" alt="" height="500" width=""> <img src="https://user-images.githubusercontent.com/8705683/87849714-b78c6780-c8fb-11ea-815d-a9227666d791.png" alt="" height="500" width="">
+<img src="https://github.com/yggdrasil-network/crispa-android/blob/master/yggdrasilscreenshot1.png" alt="" height="500" width=""> <img src="https://github.com/yggdrasil-network/crispa-android/blob/master/yggdrasilscreenshot2.png" alt="" height="500" width=""> <img src="https://github.com/yggdrasil-network/crispa-android/blob/master/yggdrasilscreenshot3.png" alt="" height="500" width="">
 
-Once connected, you can access yggdrasil public services, as the application has peered automatically to default peers within the application.
+Once connected, you can access Yggdrasil public services, as the application has peered automatically to default peers within the application.
 
-<img src="https://user-images.githubusercontent.com/8705683/87849784-62048a80-c8fc-11ea-8eb0-908e69d7595e.png" alt="" height="500" width="">
+<img src="https://github.com/yggdrasil-network/crispa-android/blob/master/yggdrasilscreenshot4.png" alt="" height="500" width="">
 
-New builds and updates here:
+New builds and updates available here:
 https://t.me/yggdrasil_android
