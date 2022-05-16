@@ -90,7 +90,7 @@ dependencies {
     implementation 'com.vincentbrison.openlibraries.android:dualcache:3.1.1'
     implementation 'com.vincentbrison.openlibraries.android:dualcache-jsonserializer:3.1.1'
     implementation 'com.android.support:multidex:1.0.3'
-    implementation 'androidx.work:work-runtime:2.8.0-alpha02'
+    implementation 'androidx.work:work-runtime-ktx:2.7.1'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.4.0'
