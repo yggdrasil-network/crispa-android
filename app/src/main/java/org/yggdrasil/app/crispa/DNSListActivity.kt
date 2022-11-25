@@ -117,8 +117,8 @@ class DNSListActivity : AppCompatActivity() {
         val item = menu.findItem(R.id.saveItem) as MenuItem
         item.setActionView(R.layout.menu_save)
         val saveButton = item
-            .actionView.findViewById<Button>(R.id.saveButton)
-        saveButton.setOnClickListener {
+            .actionView?.findViewById<Button>(R.id.saveButton)
+        saveButton?.setOnClickListener {
             if(isLoading){
                 return@setOnClickListener
             }

@@ -339,8 +339,8 @@ class PeerListActivity : AppCompatActivity() {
         val item = menu.findItem(R.id.saveItem) as MenuItem
         item.setActionView(R.layout.menu_save)
         val saveButton = item
-            .actionView.findViewById<Button>(R.id.saveButton)
-        saveButton.setOnClickListener {
+            .actionView?.findViewById<Button>(R.id.saveButton)
+        saveButton?.setOnClickListener {
             saveButton.isClickable = false
             cancelPeerListPing()
             val result = Intent(this, MainActivity::class.java)
@@ -354,8 +354,8 @@ class PeerListActivity : AppCompatActivity() {
         val editUrl = menu.findItem(R.id.editUrlItem) as MenuItem
         editUrl.setActionView(R.layout.menu_edit_url)
         val editUrlButton = editUrl
-            .actionView.findViewById<Button>(R.id.editUrlButton)
-        editUrlButton.setOnClickListener {
+            .actionView?.findViewById<Button>(R.id.editUrlButton)
+        editUrlButton?.setOnClickListener {
             editPeerListUrl()
         }
         return true
