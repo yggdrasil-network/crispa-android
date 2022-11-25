@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.preference.PreferenceManager
 import dalvik.system.DexFile
+import mobile.Mobile
 import org.yggdrasil.app.crispa.models.DNSInfo
 import org.yggdrasil.app.crispa.models.PeerInfo
 import org.yggdrasil.app.crispa.models.config.DNSInfoListAdapter
@@ -214,7 +215,7 @@ class MainActivity : AppCompatActivity() {
             val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
         }
         val versionName = findViewById<Button>(R.id.about)
-        versionName.text = """version:${BuildConfig.VERSION_NAME} build:${BuildConfig.VERSION_CODE}"""
+        versionName.text = """version:${BuildConfig.VERSION_NAME} build:${BuildConfig.VERSION_CODE} core:${Mobile.getVersion()}"""
         versionName.setOnClickListener {
             val intent = Intent(this@MainActivity, AboutActivity::class.java)
             startActivity(intent)
