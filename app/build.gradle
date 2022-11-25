@@ -6,15 +6,15 @@ def acraSecretsProperties = new Properties()
 acraSecretsProperties.load(new FileInputStream(acraSecretsPropertiesFile))
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 33
     defaultConfig {
         applicationId "io.github.chronosx88.yggdrasil"
         minSdkVersion 15
-        //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 29
+
+        targetSdkVersion 33
 
         versionCode 40
-        versionName "2.1.3"
+        versionName "2.1.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", project.getParent().name+"-"+versionName)
 
