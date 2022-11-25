@@ -22,7 +22,7 @@ import kotlin.concurrent.thread
 class DNSListActivity : AppCompatActivity() {
 
     companion object {
-        val allDNS = arrayListOf(emptyList<DNSInfo>())
+        val allDNS = emptyList<DNSInfo>()
     }
 
     var isLoading = true;
