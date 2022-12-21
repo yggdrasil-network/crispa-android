@@ -212,7 +212,9 @@ class MainActivity : AppCompatActivity() {
             val sourceDir: String = this.applicationInfo.sourceDir
             val dexFile = DexFile(sourceDir)
             val cl = classLoader
-            val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
+            if (cl != null) {
+                val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
+            }
         }
         val versionName = findViewById<Button>(R.id.about)
         versionName.text = """version:${BuildConfig.VERSION_NAME} build:${BuildConfig.VERSION_CODE} core:${Mobile.getVersion()}"""
