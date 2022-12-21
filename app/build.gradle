@@ -11,8 +11,8 @@ android {
         applicationId "io.github.chronosx88.yggdrasil"
         minSdkVersion 15
         targetSdkVersion 33
-        versionCode 42
-        versionName "2.1.6"
+        versionCode 43
+        versionName "2.1.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", project.getParent().name+"-"+versionName)
 
@@ -88,7 +88,6 @@ dependencies {
     implementation 'com.hbb20:ccp:2.4.0'
     implementation 'com.vincentbrison.openlibraries.android:dualcache:3.1.1'
     implementation 'com.vincentbrison.openlibraries.android:dualcache-jsonserializer:3.1.1'
-    implementation 'com.android.support:multidex:1.0.3'
     implementation 'androidx.work:work-runtime-ktx:2.7.1'
 
     testImplementation 'junit:junit:4.13.2'

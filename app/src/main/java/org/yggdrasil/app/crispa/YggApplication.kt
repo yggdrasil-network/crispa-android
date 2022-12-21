@@ -1,14 +1,14 @@
 package org.yggdrasil.app.crispa
 
+import android.app.Application
 import android.content.Context
-import androidx.multidex.MultiDexApplication
 import org.acra.config.dialog
 import org.acra.config.httpSender
 import org.acra.data.StringFormat
 import org.acra.ktx.initAcra
 import org.acra.sender.HttpSender
 
-class YggApplication : MultiDexApplication() {
+class YggApplication : Application() {
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
