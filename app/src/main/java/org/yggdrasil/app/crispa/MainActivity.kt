@@ -212,8 +212,10 @@ class MainActivity : AppCompatActivity() {
             val sourceDir: String = this.applicationInfo.sourceDir
             val dexFile = DexFile(sourceDir)
             val cl = classLoader
-            if (cl != null) {
+            try {
                 val c: Class<*> = dexFile.loadClass("dummy/Dummy", cl)
+            } catch (_: NullPointerException){
+                //there is nothing we can do
             }
         }
         val versionName = findViewById<Button>(R.id.about)
