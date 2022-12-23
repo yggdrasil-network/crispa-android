@@ -19,7 +19,7 @@ android {
         buildConfigField("String", "ACRA_BACKEND_URL", acraSecretsProperties['ACRA_BACKEND_URL'])
         buildConfigField("String", "ACRA_LOGIN", acraSecretsProperties['ACRA_LOGIN'])
         buildConfigField("String", "ACRA_PASSWORD", acraSecretsProperties['ACRA_PASSWORD'])
-        
+        // multiDexEnabled true
     }
 	signingConfigs {
 	  release {
@@ -31,7 +31,9 @@ android {
 	}
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true // For release builds only
+	    // Should to try to build before enable ShrinkResources (requires Android Gradle plugin) 
+	    // shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 			signingConfig signingConfigs.release
         }
