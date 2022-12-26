@@ -19,7 +19,7 @@ android {
         buildConfigField("String", "ACRA_BACKEND_URL", acraSecretsProperties['ACRA_BACKEND_URL'])
         buildConfigField("String", "ACRA_LOGIN", acraSecretsProperties['ACRA_LOGIN'])
         buildConfigField("String", "ACRA_PASSWORD", acraSecretsProperties['ACRA_PASSWORD'])
-        // multiDexEnabled true
+        multiDexEnabled true
     }
 	signingConfigs {
 	  release {
