@@ -248,26 +248,7 @@ class YggdrasilTunService : VpnService() {
         stopSelf()
     }
 
-    private fun hasIpv6DefaultRoute(): Boolean {
-        val cm =
-            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val networks = cm.allNetworks
-
-            for (network in networks) {
-                val linkProperties = cm.getLinkProperties(network)
-                if(linkProperties!=null) {
-                    val routes = linkProperties.routes
-                    for (route in routes) {
-                        if (route.isDefaultRoute && route.gateway is Inet6Address) {
-                            return true
-                        }
-                    }
-                }
-            }
-        }
-        return false
-    }
+    // private fun hasIpv6DefaultRoute(): Boolean was here
 
     private fun foregroundNotification(FOREGROUND_ID: Int, text: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {

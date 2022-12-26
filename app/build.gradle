@@ -31,7 +31,9 @@ android {
 	}
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true // For release builds only
+	    // Should to try to build before enable ShrinkResources (requires Android Gradle plugin) 
+	    // shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 			signingConfig signingConfigs.release
         }
