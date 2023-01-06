@@ -74,8 +74,6 @@ gradle.projectsEvaluated {
 
 dependencies {
 
-    implementation 'ch.acra:acra-http:5.9.6'
-    implementation 'ch.acra:acra-dialog:5.9.6'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(path: ':yggdrasil')
 
