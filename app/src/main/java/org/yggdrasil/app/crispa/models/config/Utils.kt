@@ -3,7 +3,6 @@ package org.yggdrasil.app.crispa.models.config
 import com.google.gson.Gson
 import org.yggdrasil.app.crispa.models.DNSInfo
 import org.yggdrasil.app.crispa.models.PeerInfo
-import org.acra.ACRA
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -114,7 +113,7 @@ class Utils {
         @JvmStatic
         fun deserializePeerStringList2PeerInfoSet(list: List<String>?): MutableSet<PeerInfo> {
             var gson = Gson()
-            ACRA.errorReporter.putCustomData("Peer list", gson.toJson(list))
+            
             var out = mutableSetOf<PeerInfo>()
             if (list != null) {
                 for(s in list) {
