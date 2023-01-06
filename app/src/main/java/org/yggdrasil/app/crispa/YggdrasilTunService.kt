@@ -23,7 +23,6 @@ import org.yggdrasil.app.crispa.models.config.Utils.Companion.deserializeStringL
 import org.yggdrasil.app.crispa.models.config.Utils.Companion.deserializeStringList2PeerInfoSet
 import mobile.Mobile
 import mobile.Yggdrasil
-import org.acra.ACRA
 import java.io.*
 import java.net.Inet6Address
 import kotlin.concurrent.thread
@@ -141,7 +140,6 @@ class YggdrasilTunService : VpnService() {
     private fun sendMeshPeerStatus(pi: PendingIntent?){
         class Token : TypeToken<List<Peer>>()
         ygg.addressString
-        ACRA.errorReporter.putCustomData("Peers JSON", ygg.peersJSON)
         var meshPeers: List<Peer> = gson.fromJson(ygg.peersJSON, Token().type)
         val intent: Intent = Intent().putStringArrayListExtra(
             MainActivity.MESH_PEERS,
